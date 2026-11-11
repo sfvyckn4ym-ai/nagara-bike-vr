@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ながらスマホ自転車VR</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: full-bleed 3D town; menus float as Japanese road-guide signs over a dimmed scene */
+:root{
+  --asphalt:#15171b; --panel:#1e2127; --rule:#363b44; --ink:#eef1f4; --muted:#9ba5b0;
+  --sign:#1b5cbd; --warn:#ffc61a; --danger:#ff5458; --ok:#3cc781;
+  --f-display:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--asphalt);color:var(--ink);font-family:var(--f-body);overflow:hidden;line-height:1.6}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible+span{outline:3px solid var(--warn);outline-offset:2px}
+.overlay{position:fixed;inset:0;overflow-y:auto;display:flex;justify-content:center;align-items:flex-start;
+  padding-block:max(28px,env(safe-area-inset-top,0px)) max(28px,env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:color-mix(in srgb,var(--asphalt) 74%,transparent);backdrop-filter:blur(3px);z-index:20}
+.card{width:100%;max-width:780px;display:flex;flex-direction:column;gap:22px;margin-block:auto}
+.title-row{display:flex;gap:18px;align-items:center}
+.sign{flex:1;min-width:0;background:var(--sign);border-radius:14px;padding:18px 22px;box-shadow:inset 0 0 0 4px var(--sign),inset 0 0 0 7px var(--ink)}
+.sign-sub{font-size:.8rem;letter-spacing:.12em;opacity:.85}
+.sign h1{font-family:var(--f-display);font-weight:400;font-size:clamp(1.7rem,5.4vw,2.7rem);line-height:1.2;margin:6px 0 4px;text-wrap:balance}
+.sign-en{font-family:var(--f-num);font-size:.78rem;letter-spacing:.08em;opacity:.8}
+.diamond{flex:none;width:96px;height:96px;display:grid;place-items:center;transform:rotate(45deg);background:var(--warn);border-radius:10px;box-shadow:inset 0 0 0 4px var(--warn),inset 0 0 0 7px var(--asphalt)}
+.diamond span{transform:rotate(-45deg);color:var(--asphalt);font-family:var(--f-display);font-size:.95rem;line-height:1.15;text-align:center}
+@media (max-width:480px){.diamond{width:64px;height:64px}.diamond span{font-size:.68rem}}
+.lead{margin:0;max-width:65ch}
+.lead b{color:var(--warn)}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-size:.78rem;letter-spacing:.14em;color:var(--muted);margin-bottom:8px;padding:0}
+.modes .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.mode{position:relative;display:block}
+.mode input{position:absolute;opacity:0;pointer-events:none}
+.mode span{display:flex;flex-direction:column;gap:4px;height:100%;padding:14px 16px;border:2px solid var(--rule);border-radius:10px;background:var(--panel);cursor:pointer}
+.mode strong{font-family:var(--f-display);font-weight:400;font-size:1.15rem}
+.mode small{color:var(--muted);font-size:.85rem}
+.mode input:checked+span{border-color:var(--warn);box-shadow:0 0 0 1px var(--warn)}
+.start{display:flex;flex-wrap:wrap;gap:12px}
+.btn{border:0;border-radius:999px;padding:12px 26px;font-weight:700;font-size:1rem}
+.btn.primary{background:var(--warn);color:var(--asphalt)}
+.btn.vr{background:var(--sign);color:var(--ink)}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 2px var(--rule)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{margin:0;font-size:.85rem;color:var(--muted);max-width:65ch}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;border-top:1px solid var(--rule);padding-top:18px}
+.controls h3{margin:0 0 6px;font-size:.78rem;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.controls dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font-size:.88rem}
+.controls dt{font-family:var(--f-num);color:var(--warn);white-space:nowrap}
+.controls dd{margin:0}
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  pointer-events:none;z-index:10;font-variant-numeric:tabular-nums}
+.hcol{display:flex;flex-direction:column;gap:8px}
+.meter{background:color-mix(in srgb,var(--asphalt) 78%,transparent);border-radius:10px;padding:8px 14px;min-width:150px}
+.meter .big{font-family:var(--f-num);font-size:2.2rem;font-weight:600;line-height:1}
+.meter .unit{font-size:.8rem;color:var(--muted);margin-left:4px}
+.meter .sub{font-size:.78rem;color:var(--muted);margin-top:4px}
+.chip{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:999px;background:var(--sign);margin-bottom:6px}
+.chip.phone{background:var(--warn);color:var(--asphalt)}
+#navBox{display:flex;gap:12px;align-items:center}
+#navArrow{width:46px;height:46px}
+#navTurn{font-family:var(--f-display);font-size:1.3rem;line-height:1.1}
+#gazeLive{display:inline-block;margin-top:4px;font-size:.75rem;font-weight:700;color:var(--asphalt);background:var(--danger);border-radius:4px;padding:0 6px}
+#alert{position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:12;font-family:var(--f-display);font-size:clamp(1.6rem,6vw,2.8rem);
+  color:var(--danger);text-shadow:0 2px 0 var(--asphalt),0 0 18px rgba(0,0,0,.6);pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap}
+#alert.info{color:var(--warn)}
+#hint{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:11;background:color-mix(in srgb,var(--asphalt) 80%,transparent);padding:6px 16px;border-radius:999px;font-size:.9rem;pointer-events:none;transition:opacity .5s;white-space:nowrap}
+#touch{position:fixed;left:0;right:0;bottom:0;z-index:13;display:flex;justify-content:space-between;align-items:flex-end;gap:8px;
+  padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+#touch .grp{display:flex;gap:8px;pointer-events:auto}
+#touch button{width:58px;height:58px;border-radius:14px;border:0;background:color-mix(in srgb,var(--panel) 85%,transparent);font-weight:700;font-size:.85rem;touch-action:none;user-select:none;-webkit-user-select:none}
+#touch button.on{background:var(--warn);color:var(--asphalt)}
+.insight{margin:0;padding:14px 16px;border-radius:10px;background:var(--panel);border:1px solid var(--rule)}
+.insight strong{color:var(--warn);font-family:var(--f-num)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.92rem}
+th,td{text-align:right;padding:8px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-size:.75rem;letter-spacing:.1em;color:var(--muted);font-weight:700}
+td.num{font-family:var(--f-num)}
+td.worse{color:var(--danger)}
+h2.sec{margin:0;font-size:.8rem;letter-spacing:.14em;color:var(--muted)}
+.res-sign{align-self:flex-start;background:var(--sign);border-radius:10px;padding:8px 20px;box-shadow:inset 0 0 0 3px var(--sign),inset 0 0 0 5px var(--ink);font-family:var(--f-display);font-size:1.4rem}
+#copyArea{width:100%;min-height:140px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:8px;font-family:var(--f-num);font-size:.8rem}
+@media (prefers-reduced-motion:reduce){#alert,#hint{transition:none}}
+</style>
+
+<canvas id="scene" aria-label="自転車走行シーン"></canvas>
+<div id="hud" hidden>
+  <div class="hcol">
+    <div class="meter">
+      <span class="chip" id="modeChip">ハンドルナビ</span>
+      <div><span class="big" id="spd">0</span><span class="unit">km/h</span></div>
+      <div class="sub" id="remainRow">目的地まで <span id="remain">0</span> m</div>
+    </div>
+    <div class="meter" id="navMeter"><div id="navBox"><canvas id="navArrow" width="92" height="92"></canvas><div><div id="navTurn">右折</div><div class="sub" id="navDist">0 m 先</div></div></div></div>
+  </div>
+  <div class="meter" id="gazeBox" hidden>
+    <div class="sub" style="margin-top:0">スマホ注視</div>
+    <div><span class="big" id="gazeT">0.0</span><span class="unit">秒</span></div>
+    <div class="sub">見ずに進んだ <span id="gazeD">0</span> m</div>
+    <span id="gazeLive" hidden>注視中</span>
+  </div>
+</div>
+<div id="alert" aria-live="assertive"></div>
+<div id="hint" hidden></div>
+<div id="touch" hidden>
+  <div class="grp"><button data-hold="left" aria-label="左">◀</button><button data-hold="right" aria-label="右">▶</button></div>
+  <div class="grp"><button data-hold="brake">止</button><button data-hold="acc">こぐ</button></div>
+</div>
+
+<section id="menu" class="overlay">
+  <div class="card">
+    <header class="title-row">
+      <div class="sign">
+        <span class="sign-sub">ゼミ発表デモ ／ three.js + WebXR</span>
+        <h1>ながらスマホ<br>自転車シミュレータ</h1>
+        <span class="sign-en">DISTRACTED CYCLING SIM · LINE NAVIGATION</span>
+      </div>
+      <div class="diamond" aria-hidden="true"><span>スマホ<br>注意</span></div>
+    </header>
+    <p class="lead">知らない街を自転車で走り、<b>大学 正門</b>を目指します。道順はナビの案内だけが頼りです。細い碁盤目の街には信号のある交差点が42か所あり、車が行き交い、横断歩道を人が渡り、駐車車両の陰から人が飛び出してきます。<b>ながらスマホ</b>では左手にずっとスマホを持っています。正門で待つ友達の「ゆうた」が、走っている最中にLINEで「次の信号を右」「コンビニの角を左、そのあとすぐ右」のように道順を送ってくるので、読まないと道が分かりません。合間に雑談も届き、<b>スマホを見ている間だけ返信が打ち込まれます</b>。目を離すと入力が止まり、放っておくと催促されます。他の人からの通知も画面にかぶさってきます。街には<b>警察官</b>が所々に立っていて、その前で3秒以上スマホを見ていると笛を吹かれ、止められます。スマホを見ているかどうかは視線の向きで自動的に計測します。<b>ハンドルナビ</b>では音声とハンドルの案内表示で走れます。両方走ると、反応時間・ヒヤリハット・「前を見ずに進んだ距離」を比較できます。</p>
+    <fieldset class="modes">
+      <legend>モード</legend>
+      <div class="opts">
+        <label class="mode"><input type="radio" name="mode" id="modeNormal" value="normal" checked><span><strong>ハンドルナビ</strong><small>音声案内＋ハンドルの矢印表示。前を見て走る対照条件</small></span></label>
+        <label class="mode"><input type="radio" name="mode" id="modePhone" value="phone"><span><strong>ながらスマホ</strong><small>左手のスマホに友達からLINEで道順が届く。雑談にも返信しながら走る。見ている間だけ文字が打てる</small></span></label>
+      </div>
+    </fieldset>
+    <div class="start">
+      <button class="btn primary" id="startScreen">画面で走る</button>
+      <button class="btn vr" id="startVR">VRで走る</button>
+    </div>
+    <p class="note" id="vrStatus">VR対応を確認しています…</p>
+    <div class="controls">
+      <div><h3>キーボード</h3><dl>
+        <dt>W / ↑</dt><dd>こぐ</dd><dt>S / ↓</dt><dd>ブレーキ</dd><dt>A D / ← →</dt><dd>ハンドル</dd>
+        <dt>マウス</dt><dd>視点（画面クリックで固定、Esc で解除。ドラッグでも可）</dd><dt>C</dt><dd>視点を正面に戻す</dd><dt>E</dt><dd>ベル</dd><dt>Q</dt><dd>やめる</dd></dl></div>
+      <div><h3>VR（Quest など）</h3><dl>
+        <dt>右スティック</dt><dd>上でこぐ・左右でハンドル</dd><dt>右トリガー</dt><dd>ブレーキ</dd><dt>右 A</dt><dd>ベル</dd><dt>右 B</dt><dd>目線の高さを合わせ直す</dd>
+        <dt>左手</dt><dd>スマホを持つ。顔に近づけると読みやすい。視線を向けると「注視」</dd></dl></div>
+      <div><h3>タッチ</h3><dl>
+        <dt>こぐ / 止</dt><dd>押している間</dd><dt>◀ ▶</dt><dd>ハンドル</dd><dt>画面ドラッグ</dt><dd>視点（下を向くとスマホ）</dd></dl></div>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="overlay" hidden>
+  <div class="card">
+    <div class="res-sign">結果</div>
+    <p class="insight" id="insight"></p>
+    <div class="tablewrap"><table id="resTable"></table></div>
+    <h2 class="sec">危険の種類ごとの反応</h2>
+    <div class="tablewrap"><table id="hazTable"></table></div>
+    <p class="note">反応時間は、危険が始まってから最初にブレーキ（飛び出しはハンドル操作も含む）を入れるまでの秒数です。4.5 秒以内に操作がなければ「反応なし」です。ヒヤリハットは、車が自転車の 35 cm 以内を通過した回数です。警察官は歩道に立っていて、その 18 m 以内でスマホを見ていた時間が通算 3 秒に達すると笛を吹いて注意し、約 2.5 秒止められます（1人につき1回の通過で1回まで）。</p>
+    <div class="start">
+      <button class="btn primary" data-run="phone">ながらスマホで走る</button>
+      <button class="btn vr" data-run="normal">ハンドルナビで走る</button>
+      <button class="btn ghost" id="copyBtn">結果をコピー</button>
+      <button class="btn ghost" id="toMenu">タイトルへ</button>
+    </div>
+    <textarea id="copyArea" hidden readonly aria-label="結果テキスト"></textarea>
+  </div>
+</section>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+const $=s=>document.querySelector(s);
+const clamp=THREE.MathUtils.clamp,lerp=THREE.MathUtils.lerp;
+
+/* ================= renderer ================= */
+const canvas=$('#scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight,false);
+renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');
+const scene=new THREE.Scene();
+const SKY=0xc6d9e8;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,45,190);
+scene.add(new THREE.HemisphereLight(0xeef6ff,0x5d5548,1.15));
+const sun=new THREE.DirectionalLight(0xfff1da,1.5);sun.position.set(-30,60,25);scene.add(sun);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.03,450);
+const rig=new THREE.Group();scene.add(rig);rig.add(camera);
+const EYE=1.45;camera.position.set(0,EYE,0);
+addEventListener('resize',()=>{if(renderer.xr.isPresenting)return;renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
+
+/* ================= helpers ================= */
+function rng32(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+const W=rng32(20261014);
+const mats={};const mat=c=>mats[c]||(mats[c]=new THREE.MeshLambertMaterial({color:c}));
+const vcMat=new THREE.MeshLambertMaterial({vertexColors:true});
+const tmpC=new THREE.Color();
+function colorize(g,hex){tmpC.setHex(hex);const n=g.attributes.position.count,a=new Float32Array(n*3);for(let k=0;k<n;k++){a[k*3]=tmpC.r;a[k*3+1]=tmpC.g;a[k*3+2]=tmpC.b;}g.setAttribute('color',new THREE.BufferAttribute(a,3));return g;}
+function inst(geo,material,list){const m=new THREE.InstancedMesh(geo,material,list.length);const o=new THREE.Object3D();
+  list.forEach((it,k)=>{o.position.set(it.p[0],it.p[1],it.p[2]);o.rotation.set(0,it.ry||0,0);const s=it.s||[1,1,1];o.scale.set(s[0],s[1],s[2]);o.updateMatrix();m.setMatrixAt(k,o.matrix);if(it.c!==undefined){tmpC.setHex(it.c);m.setColorAt(k,tmpC);}});
+  m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;m.frustumCulled=false;scene.add(m);return m;}
+function cylBetween(a,b,r,c){const d=new THREE.Vector3().subVectors(b,a);const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),mat(c));m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());return m;}
+const box=(w,h,d,c)=>new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));
+function textBoard(text,w,h,bg,fg,px=80){const cv=document.createElement('canvas');cv.width=Math.round(w*128);cv.height=Math.round(h*128);const c=cv.getContext('2d');
+  c.fillStyle=bg;c.fillRect(0,0,cv.width,cv.height);c.strokeStyle=fg;c.lineWidth=8;c.strokeRect(10,10,cv.width-20,cv.height-20);
+  c.fillStyle=fg;c.font=`700 ${px}px "Zen Kaku Gothic New",sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(text,cv.width/2,cv.height/2+4);
+  const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;return new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));}
+
+/* ================= town grid ================= */
+const S=48,RW=4.5,SWK=3,NX=7,NZ=6,LO=1.8,BL=3.5; // 細かい碁盤目：交差点42か所
+const DX=[0,1,0,-1],DZ=[-1,0,1,0],DI=[0,1,0,-1],DJ=[1,0,-1,0];
+const leftOf=d=>[DZ[d],-DX[d]];
+const inGrid=(i,j)=>i>=0&&i<NX&&j>=0&&j<NZ;
+const NX0=-RW-70,NX1=(NX-1)*S+RW+70,NZ0=RW+70,NZ1=-(NZ-1)*S-RW-70;
+const GOAL=[6,5];
+const PLAN=plan([0,1],'Z'); // 1ブロックごとに曲がるジグザグ経路（約10回曲がる）
+const phaseOff=[];for(let i=0;i<NX;i++){phaseOff[i]=[];for(let j=0;j<NZ;j++)phaseOff[i][j]=W()*24;}
+const CYC=24;
+function light(i,j,axis){const t=((T+phaseOff[i][j])%CYC+CYC)%CYC;
+  if(axis==='Z')return t<9?'G':t<11.5?'Y':'R';return t>=12&&t<21?'G':(t>=21&&t<23.5)?'Y':'R';}
+const axisOf=d=>DX[d]!==0?'X':'Z';
+function ePt(A,d,s,lat){const[lx,lz]=leftOf(d);return[A[0]*S+DX[d]*s+lx*lat,-A[1]*S+DZ[d]*s+lz*lat];}
+
+{ // ground & road
+  const g=new THREE.Mesh(new THREE.PlaneGeometry(900,900),mat(0x8a867c));g.rotation.x=-Math.PI/2;g.position.set(144,-.01,-108);scene.add(g);
+  const r=new THREE.Mesh(new THREE.PlaneGeometry((NX-1)*S+2*RW,(NZ-1)*S+2*RW),mat(0x3a3d43));r.rotation.x=-Math.PI/2;r.position.set((NX-1)*S/2,0,-(NZ-1)*S/2);scene.add(r);
+}
+// ===== 日本の街並み =====
+// 区画ごとに道路に面した敷地を割り、戸建て・アパート・マンション・商店・月極駐車場を建てる（区画ごとに1メッシュへ結合）
+const walks=[];const vendDisp=[];
+const pickW=(a)=>a[(W()*a.length)|0];
+function prep(g,hex){g=g.index?g.toNonIndexed():g;if(!g.attributes.normal)g.computeVertexNormals();if(!g.attributes.uv)g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));return colorize(g,hex);}
+class Lot{constructor(x,z,ry){this.m=new THREE.Matrix4().makeRotationY(ry).setPosition(x,0,z);}
+  box(o,w,h,d,x,y,z,hex,rx=0){const g=new THREE.BoxGeometry(w,h,d);if(rx)g.rotateX(rx);g.translate(x,y+h/2,z);g.applyMatrix4(this.m);o.push(prep(g,hex));}
+  geo(o,g,hex){g.applyMatrix4(this.m);o.push(prep(g,hex));}}
+function gable(w,d,h){const a=w/2,b=d/2;const P=[-a,0,b,a,0,b,a,h,0,-a,0,b,a,h,0,-a,h,0, a,0,-b,-a,0,-b,-a,h,0,a,0,-b,-a,h,0,a,h,0, a,0,b,a,0,-b,a,h,0,-a,0,-b,-a,0,b,-a,h,0];
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g;}
+const PAL={wall:[0xece6da,0xdcd4c4,0xc9c1b2,0xe9e3d3,0xb7b2a8,0xd2cbbd,0x9ea6ab,0xc8b9a2,0xe2ddd5],roof:[0x3b4048,0x56403a,0x2e4757,0x474c43,0x5a5d61,0x6a4a3c],
+  apt:[0xece9e2,0xd8d1c2,0xc4ccd1,0xe4dccd,0xbfb6a6],tile:[0xb89f86,0xd8cfc0,0xa58e79,0xe4ddd1,0xc7c0b5,0x9b8676],awn:[0xc8423a,0x2f6c9e,0x2f8a55,0xe0a020,0x7a3b6e,0x2b2f36],
+  sign:[0xf2efe6,0x1d4f8f,0xc23b33,0x2e7d4f,0xf0c419,0x30343a],vend:[0xd7262f,0xf0f0ee,0x1f5fb0,0x2d8b57,0xe8e8e8,0xd7262f],glass:0x35424e,frame:0xe8e7e2,door:[0x7a5e45,0x5c6b78,0x8b6f52,0x3d3f42],block:0xaba79e,ac:0xdddfdb};
+function addVend(L,o,x,z){L.box(o,.95,1.82,.72,x,0,z,pickW(PAL.vend));L.box(o,.62,.16,.05,x,.22,z+.37,0x1e1f22);
+  vendDisp.push(new THREE.Matrix4().multiplyMatrices(L.m,new THREE.Matrix4().makeTranslation(x,1.18,z+.365)));}
+function bHouse(L,o,w,D){const bw=Math.min(w-1.4,7+W()*2),bd=Math.min(D-3,7.5+W()*1.5),ox=(W()-.5)*Math.max(0,w-bw-1.4),cz=D/2-2.2-bd/2,zf=cz+bd/2,H=5.7;
+  L.box(o,bw,H,bd,ox,0,cz,pickW(PAL.wall));const rf=gable(bw+.9,bd+.9,1.4+W()*.7);rf.translate(ox,H,cz);L.geo(o,rf,pickW(PAL.roof));
+  const dx=ox-bw*.3;L.box(o,.95,2.05,.08,dx,0,zf+.03,pickW(PAL.door));L.box(o,1.4,.1,.8,dx,2.15,zf+.4,0x9a9893);
+  for(const[k,y]of[[.2,1.0],[-.25,3.6],[.25,3.6]]){const x=ox+bw*k;L.box(o,1.3,1.25,.05,x,y-.07,zf+.02,PAL.frame);L.box(o,1.1,1.1,.07,x,y,zf+.03,PAL.glass);}
+  if(W()<.55){L.box(o,bw*.62,.12,.95,ox+bw*.15,2.95,zf+.47,0xcfcfcb);L.box(o,bw*.62,.95,.05,ox+bw*.15,3.07,zf+.93,W()<.5?0xdedcd6:0x8d9298);}
+  L.box(o,.8,.6,.3,ox+bw/2-.6,0,zf+.18,PAL.ac);
+  const l0=-w/2+.1,l1=dx-.75,r0=dx+.75,r1=w/2-.1;if(l1>l0)L.box(o,l1-l0,1.15,.15,(l0+l1)/2,0,D/2-.2,PAL.block);if(r1>r0)L.box(o,r1-r0,1.15,.15,(r0+r1)/2,0,D/2-.2,PAL.block);
+  if(W()<.4){const tx=Math.min(w/2-1,ox+bw*.3);L.box(o,.12,1.4,.12,tx,0,D/2-1.1,0x6b5440);L.geo(o,new THREE.IcosahedronGeometry(.8,0).translate(tx,2.0,D/2-1.1),0x557a42);}}
+function bApt(L,o,w,D){const fl=2+(W()<.45?1:0),fh=2.8,bw=w-2.6,bd=Math.min(D-2,8.5),cz=D/2-2-bd/2,zf=cz+bd/2,H=fl*fh+.5,ox=-1,n=Math.max(2,Math.floor(bw/3.3)),dc=pickW(PAL.door);
+  L.box(o,bw,H,bd,ox,0,cz,pickW(PAL.apt));
+  for(let f=0;f<fl;f++){const y=f*fh;if(f>0){L.box(o,bw,.16,1.3,ox,y-.16,zf+.65,0xc9c8c3);L.box(o,bw,1.05,.06,ox,y,zf+1.27,0xb4b8bc);}
+    for(let u=0;u<n;u++){const x=ox-bw/2+(u+.5)*bw/n;L.box(o,.85,2.0,.06,x-.5,y,zf+.03,dc);L.box(o,.6,.6,.06,x+.55,y+1.2,zf+.03,0x8f9ea8);}}
+  L.box(o,1.5,H-.6,2.8,ox+bw/2+.8,0,zf-1.2,0x7c8388);L.box(o,bw+.2,.25,bd+.2,ox,H-.25,cz,0xa9aaa6);}
+function bMan(L,o,w,D){const fl=5+((W()*5)|0),fh=3,bw=w-.8,bd=Math.min(D-1.5,12),cz=D/2-1.6-bd/2,zf=cz+bd/2,H=fl*fh+.6,panel=W()<.5?0xe9e8e3:0x9fb2be;
+  L.box(o,bw,H,bd,0,0,cz,pickW(PAL.tile));L.box(o,3.2,2.5,.06,0,0,zf+.03,0x55636e);L.box(o,4,.22,1.8,0,2.7,zf+.9,0xdad6ce);
+  for(let f=1;f<fl;f++){const y=f*fh;L.box(o,bw-.6,2.1,.05,0,y+.15,zf+.02,PAL.glass);L.box(o,bw,.18,1.4,0,y-.18,zf+.7,0xe0ded8);L.box(o,bw,1.1,.08,0,y,zf+1.36,panel);
+    for(let x=-bw/2+4;x<bw/2-1;x+=4)L.box(o,.08,2.6,1.3,x,y,zf+.7,0xd5d3cd);
+    for(const sx of[-1,1])L.box(o,.05,1.2,1.6,sx*(bw/2+.01),y+.8,cz,PAL.glass);}
+  L.box(o,2.2,1.3,2.2,bw*.2,H,cz,0xbfc4c7);}
+function bShop(L,o,w,D){const fl=2+(W()<.4?1:0),bw=w-.4,bd=Math.min(D-1,10),cz=D/2-.9-bd/2,zf=cz+bd/2,H=3.4+(fl-1)*2.9+.3;
+  L.box(o,bw,H,bd,0,0,cz,pickW(PAL.wall));
+  if(W()<.65){L.box(o,bw-.6,2.45,.06,0,.05,zf+.03,0x46545f);for(let x=-bw/2+1.9;x<bw/2-.3;x+=1.6)L.box(o,.06,2.45,.08,x,.05,zf+.04,0xcfcfcb);}
+  else{L.box(o,bw-.6,2.6,.06,0,0,zf+.03,0xb6b9b8);for(let y=.2;y<2.6;y+=.25)L.box(o,bw-.6,.03,.08,0,y,zf+.04,0x9a9d9c);}
+  L.box(o,bw-.3,.05,1.3,0,2.75,zf+.6,pickW(PAL.awn),.32);L.box(o,bw-.2,.72,.12,0,3.02,zf+.07,pickW(PAL.sign));
+  for(let f=1;f<fl;f++){const y=3.4+(f-1)*2.9+.95;for(const k of[-.25,.25]){L.box(o,1.3,1.2,.05,bw*k,y-.07,zf+.02,PAL.frame);L.box(o,1.1,1.05,.07,bw*k,y,zf+.03,PAL.glass);}}
+  L.box(o,.12,1.7,.75,bw/2-.35,3.9,zf+.45,pickW(PAL.sign));
+  if(W()<.5)addVend(L,o,-bw/2+.6,D/2+.45);}
+function bPark(L,o,w,D){L.box(o,w-.1,.04,D-.1,0,0,0,0x56585c);const n=Math.max(1,Math.floor((w-.6)/2.6));for(let k=0;k<=n;k++)L.box(o,.12,.012,4.6,-w/2+.3+k*((w-.6)/n),.04,-D/2+2.6,0xe8e8e4);
+  for(let x=-w/2+.2;x<w/2;x+=1.8)L.box(o,.07,.7,.07,x,0,D/2-.15,0x8a8d90);L.box(o,w-.2,.05,.04,0,.65,D/2-.15,0x8a8d90);
+  L.box(o,.08,2.1,.08,-w/2+.5,0,D/2-.4,0x8a8d90);L.box(o,1.2,.7,.05,-w/2+.5,1.5,D/2-.38,0xf0c419);
+  if(W()<.8){addVend(L,o,w/2-.7,D/2-.6);if(W()<.6)addVend(L,o,w/2-1.7,D/2-.6);}}
+function buildLot(L,o,type,w,D){({house:bHouse,apt:bApt,man:bMan,shop:bShop,park:bPark})[type](L,o,w,D);}
+for(let ci=-1;ci<NX;ci++)for(let cj=-1;cj<NZ;cj++){
+  const x0=ci<0?NX0:ci*S+RW,x1=ci>=NX-1?NX1:(ci+1)*S-RW;
+  const zHi=cj<0?NZ0:-cj*S-RW,zLo=cj>=NZ-1?NZ1:-(cj+1)*S+RW;
+  const campus=ci===GOAL[0]&&cj===GOAL[1];
+  walks.push({p:[(x0+x1)/2,0,(zHi+zLo)/2],s:[x1-x0,.15,zHi-zLo],c:campus?0x7a9a5c:0xb3ada3});
+  if(campus)continue;
+  const bx0=x0+SWK,bx1=x1-SWK,bzLo=zLo+SWK,bzHi=zHi-SWK,D=11+W()*1.5,parts=[];
+  const inX=ci>=0&&ci<=NX-2,inZ=cj>=0&&cj<=NZ-2,hasS=inX&&cj>=0,hasN=inX&&cj<=NZ-2;
+  const sides=[];
+  if(hasS)sides.push({p0:[bx0,bzHi],t:[1,0],n:[0,1],L:bx1-bx0});
+  if(hasN)sides.push({p0:[bx1,bzLo],t:[-1,0],n:[0,-1],L:bx1-bx0});
+  const zs=bzHi-(hasS?D:0),ze=bzLo+(hasN?D:0);
+  if(inZ&&ci>=0)sides.push({p0:[bx0,ze],t:[0,1],n:[-1,0],L:zs-ze});
+  if(inZ&&ci<NX-1)sides.push({p0:[bx1,zs],t:[0,-1],n:[1,0],L:zs-ze});
+  const outer=!(inX&&inZ);
+  for(const sd of sides)for(const row of outer?[0,1]:[0]){let u=0;
+    while(sd.L-u>4.5){let w=row?10+W()*6:6.5+W()*4.5;if(sd.L-u-w<5.5)w=sd.L-u;
+      const back=row?D+1+6:D/2,cx=sd.p0[0]+sd.t[0]*(u+w/2)-sd.n[0]*back,cz=sd.p0[1]+sd.t[1]*(u+w/2)-sd.n[1]*back;
+      const L=new Lot(cx,cz,Math.atan2(sd.n[0],sd.n[1]));const r=W(),corner=u<1||sd.L-u-w<1;let type;
+      if(row)type=w>=9&&r<.6?'man':'apt';
+      else if(corner&&r<.45)type='shop';else if(r<.42)type='house';else if(r<.58)type='apt';else if(r<.7&&w>=8.5)type='man';else if(r<.88)type='shop';else type='park';
+      buildLot(L,parts,type,w,row?12:D);if(!row&&type!=='park'&&type!=='shop'&&W()<.1)addVend(L,parts,(W()-.5)*(w-1.4),D/2+.45);
+      u+=w;}}
+  if(parts.length){const m=new THREE.Mesh(mergeGeometries(parts),vcMat);scene.add(m);}
+}
+inst(new THREE.BoxGeometry(1,1,1).translate(0,.5,0),mat(0xffffff),walks);
+{ // 自販機の表示面（商品が並ぶ明るいパネル）
+  const cv=document.createElement('canvas');cv.width=128;cv.height=168;const c=cv.getContext('2d');c.fillStyle='#f4f6f8';c.fillRect(0,0,128,168);
+  const cols=['#d63a2f','#2b6cb3','#f2b134','#3a9a5b','#7a4a2a','#e8e8e8','#1f2a3a','#e46aa0'];
+  for(let r=0;r<3;r++)for(let k=0;k<6;k++){const x=8+k*19.5,y=10+r*42;c.fillStyle=cols[(r*3+k*5)%cols.length];c.fillRect(x,y,12,28);c.fillStyle='#fff';c.fillRect(x+3,y-4,6,5);c.fillStyle='#d23';c.fillRect(x,y+31,12,4);}
+  c.fillStyle='#3a3f46';c.fillRect(0,140,128,28);c.fillStyle='#8be08b';c.fillRect(10,148,30,10);
+  const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;
+  const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.8,1.05),new THREE.MeshBasicMaterial({map:t}),Math.max(1,vendDisp.length));vendDisp.forEach((m,k)=>im.setMatrixAt(k,m));im.count=vendDisp.length;im.frustumCulled=false;scene.add(im);}
+
+// markings
+const flatGeo=new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2);
+const paintW=new THREE.MeshLambertMaterial({color:0xf0f0ec,polygonOffset:true,polygonOffsetFactor:-2});
+const paintB=new THREE.MeshLambertMaterial({color:0x2f6fd6,polygonOffset:true,polygonOffsetFactor:-2});
+const dashes=[],stripes=[],chev=[],trees=[],crowns=[],holes=[];
+const edges=[];for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++){if(i+1<NX)edges.push([[i,j],1]);if(j+1<NZ)edges.push([[i,j],0]);}
+for(const[A,d]of edges){
+  const ry=d===1?Math.PI/2:0;
+  for(let s=RW+7;s<S-RW-5;s+=6){const[x,z]=ePt(A,d,s,0);dashes.push({p:[x,.02,z],s:[.14,1,3],ry});}
+  for(const sg of[1,-1]){const[x,z]=ePt(A,d,S/2,sg*(RW-.3));dashes.push({p:[x,.02,z],s:[.15,1,S-2*RW-9.4],ry});} // 外側線
+  for(const dd of[d,(d+2)%4]){const A2=dd===d?A:[A[0]+DI[d],A[1]+DJ[d]];const hA=Math.atan2(-DX[dd],-DZ[dd]);const[lx,lz]=leftOf(dd);
+    for(let s=RW+9;s<S-RW-8;s+=10){const[x,z]=ePt(A2,dd,s,BL);for(const sg of[1,-1])chev.push({p:[x+lx*sg*.2,.021,z+lz*sg*.2],s:[.16,1,.85],ry:hA-sg*.62});}}
+  if(W()<.3)for(let s=16;s<S-8;s+=20){const[x,z]=ePt(A,d,s,-(RW+1.7));trees.push({p:[x,0,z]});crowns.push({p:[x,3.1,z],s:[1,1.2,1],ry:W()*3});}
+  for(let n=0;n<2;n++){const[x,z]=ePt(A,d,RW+8+W()*(S-2*RW-16),(W()-.5)*5);holes.push({p:[x,.023,z],s:[.65,1,.65]});}
+}
+for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++)for(let e=0;e<4;e++){if(!inGrid(i+DI[e],j+DJ[e]))continue;
+  const[lx,lz]=leftOf(e);const cx=i*S+DX[e]*(RW+2),cz=-j*S+DZ[e]*(RW+2);const ry=DX[e]!==0?Math.PI/2:0;
+  for(let k=-4;k<=4;k++)stripes.push({p:[cx+lx*k*.95,.022,cz+lz*k*.95],s:[.5,1,3],ry});
+  const d=(e+2)%4;const[mx,mz]=leftOf(d);const sx=i*S-DX[d]*(RW+4.4)+mx*RW/2,sz=-j*S-DZ[d]*(RW+4.4)+mz*RW/2;
+  stripes.push({p:[sx,.022,sz],s:[RW,1,.35],ry:DX[d]!==0?Math.PI/2:0});}
+inst(flatGeo,paintW,dashes);inst(flatGeo,paintW,stripes);inst(flatGeo,paintB,chev);
+inst(new THREE.CircleGeometry(.5,14).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0x4b4d50,polygonOffset:true,polygonOffsetFactor:-2}),holes);
+inst(new THREE.CylinderGeometry(.1,.14,2.4,6).translate(0,1.2,0),mat(0x6b5440),trees);
+inst(new THREE.IcosahedronGeometry(1.3,0),mat(0x5f8a4a),crowns);
+
+// 電柱と電線（何本もの電線・変圧器・電柱広告・家への引込線）
+{const poleL=[],armL=[],trL=[],adL=[[],[],[]],wire=[];
+  const sag=(p,q,s,seg=8)=>{for(let k=0;k<seg;k++){const f=t=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t-4*s*t*(1-t),p[2]+(q[2]-p[2])*t];wire.push(...f(k/seg),...f((k+1)/seg));}};
+  const line=(pts,nx,nz)=>{const ry=Math.atan2(nx,nz);
+    pts.forEach((p,k)=>{poleL.push({p:[p[0],0,p[1]]});armL.push({p:[p[0],10.1,p[1]],s:[.12,.12,1.5],ry});armL.push({p:[p[0],9.2,p[1]],s:[.1,.1,1.1],ry});
+      if(k%2===0)trL.push({p:[p[0]+nx*.4,7.3,p[1]+nz*.4]});adL[k%3].push({p:[p[0]-nx*.19,2.6,p[1]-nz*.19],ry:ry+Math.PI});
+      if(W()<.6){const a=(W()-.5)*8;sag([p[0],6.1,p[1]],[p[0]+nx*4.6+nz*a,5.0,p[1]+nz*4.6+nx*a],.15,4);}
+      if(W()<.22){const a=(W()-.5)*6;sag([p[0],6.6,p[1]],[p[0]-nx*(2*RW+5.6)+nz*a,5.2,p[1]-nz*(2*RW+5.6)+nx*a],.35,6);}});
+    for(let k=0;k+1<pts.length;k++){const a=pts[k],b=pts[k+1];for(const[o,h,s]of[[-.65,10.25,.25],[0,10.25,.25],[.65,10.25,.25],[-.45,9.35,.3],[.45,9.35,.3],[.2,6.5,.45],[-.15,6.0,.5]])sag([a[0]+nx*o,h,a[1]+nz*o],[b[0]+nx*o,h,b[1]+nz*o],s);}};
+  for(let j=0;j<NZ;j++){const pts=[];for(let x=8;x<=(NX-1)*S-8;x+=16)pts.push([x,-j*S+RW+.6]);line(pts,0,1);}
+  for(let i=0;i<NX;i++){const pts=[];for(let z=-8;z>=-(NZ-1)*S+8;z-=16)pts.push([i*S-RW-.6,z]);line(pts,-1,0);}
+  inst(new THREE.CylinderGeometry(.14,.19,11,8).translate(0,5.5,0),mat(0xb0aca3),poleL);
+  inst(new THREE.BoxGeometry(1,1,1),mat(0x8d8f8c),armL);
+  inst(new THREE.CylinderGeometry(.27,.27,.95,10),mat(0x9fa4a7),trL);
+  const wg=new THREE.BufferGeometry();wg.setAttribute('position',new THREE.Float32BufferAttribute(wire,3));const wl=new THREE.LineSegments(wg,new THREE.LineBasicMaterial({color:0x1b1c1e}));wl.frustumCulled=false;scene.add(wl);
+  // 電柱広告（縦書き）
+  const cv=document.createElement('canvas');cv.width=192;cv.height=256;const c=cv.getContext('2d');
+  const ADS=[['#fff','#1d4f8f','山田内科','この先50m'],['#f3d21b','#222','個別指導','生徒募集中'],['#fff','#c23b33','ふとん丸洗い','お電話を']];
+  ADS.forEach(([bg,fg,a,b],k)=>{const x=k*64;c.fillStyle=bg;c.fillRect(x,0,64,256);c.fillStyle=fg;c.fillRect(x,0,64,8);c.font='700 26px "Zen Kaku Gothic New",sans-serif';c.textAlign='center';
+    [...a].forEach((ch,q)=>c.fillText(ch,x+32,40+q*30));c.font='400 13px "Zen Kaku Gothic New",sans-serif';[...b].forEach((ch,q)=>c.fillText(ch,x+52,170+q*15));});
+  const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;const am=new THREE.MeshLambertMaterial({map:t});
+  for(let k=0;k<3;k++){const g=new THREE.PlaneGeometry(.34,1.3);const uv=g.attributes.uv;for(let q=0;q<uv.count;q++)uv.setX(q,(k+uv.getX(q))/3);inst(g,am,adL[k]);}
+}
+
+// 交通標識（横断歩道・最高速度30・自転車及び歩行者専用）とカーブミラー・ガードパイプ
+{const cv=document.createElement('canvas');cv.width=384;cv.height=128;const c=cv.getContext('2d');
+  c.fillStyle='#1e5aa8';c.fillRect(4,4,120,120);c.fillStyle='#fff';c.beginPath();c.moveTo(64,16);c.lineTo(114,106);c.lineTo(14,106);c.closePath();c.fill();
+  c.fillStyle='#111';c.beginPath();c.arc(66,46,7,0,7);c.fill();c.lineWidth=6;c.strokeStyle='#111';c.lineCap='round';c.beginPath();c.moveTo(64,56);c.lineTo(58,78);c.lineTo(48,96);c.moveTo(58,78);c.lineTo(72,96);c.moveTo(62,62);c.lineTo(76,72);c.moveTo(62,62);c.lineTo(50,72);c.stroke();
+  c.fillStyle='#111';for(let k=0;k<4;k++)c.fillRect(30+k*18,99,10,5);
+  c.fillStyle='#fff';c.beginPath();c.arc(192,64,58,0,7);c.fill();c.strokeStyle='#d0262a';c.lineWidth=12;c.beginPath();c.arc(192,64,52,0,7);c.stroke();c.fillStyle='#1e4fa0';c.font='700 58px "IBM Plex Mono",monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('30',192,68);
+  c.fillStyle='#1e5aa8';c.beginPath();c.arc(320,64,58,0,7);c.fill();c.strokeStyle='#fff';c.fillStyle='#fff';c.lineWidth=4;
+  c.beginPath();c.arc(298,82,12,0,7);c.moveTo(354,82);c.arc(342,82,12,0,7);c.moveTo(298,82);c.lineTo(316,62);c.lineTo(342,82);c.moveTo(316,62);c.lineTo(334,62);c.stroke();
+  c.beginPath();c.arc(344,36,5,0,7);c.fill();c.beginPath();c.moveTo(343,42);c.lineTo(340,58);c.stroke();
+  const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;const sm=new THREE.MeshLambertMaterial({map:t,transparent:true,alphaTest:.4});
+  const signs=[[],[],[]],backs=[[],[],[]],sp=[],mirrorPole=[],mirrorHead=[],mirrorFace=[],gpPost=[],gpRail=[];
+  const put=(k,x,z,h,ry)=>{signs[k].push({p:[x,h,z],ry});backs[k].push({p:[x-Math.sin(ry)*.02,h,z-Math.cos(ry)*.02],ry:ry+Math.PI});sp.push({p:[x-Math.sin(ry)*.05,0,z-Math.cos(ry)*.05],s:[1,h/2.9,1]});};
+  for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++){
+    for(let e=0;e<4;e++){if(!inGrid(i+DI[e],j+DJ[e]))continue;const d=(e+2)%4,[lx,lz]=leftOf(d),ry=Math.atan2(-DX[d],-DZ[d]);
+      put(0,i*S+DX[e]*(RW+5.6)+lx*(RW+.75),-j*S+DZ[e]*(RW+5.6)+lz*(RW+.75),2.55,ry);
+      if(W()<.5)for(const sg of[1,-1]){const[ex,ez]=leftOf(e);const base=[i*S+DX[e]*(RW+12.5)+ex*sg*(RW+.3),-j*S+DZ[e]*(RW+12.5)+ez*sg*(RW+.3)];
+        gpRail.push({p:[base[0],.45,base[1]],s:[.05,.05,7],ry:Math.atan2(DX[e],DZ[e])});gpRail.push({p:[base[0],.8,base[1]],s:[.05,.05,7],ry:Math.atan2(DX[e],DZ[e])});
+        for(let q=-3.5;q<=3.5;q+=1.75)gpPost.push({p:[base[0]+DX[e]*q,0,base[1]+DZ[e]*q]});}}
+    if(W()<.5){const qx=W()<.5?1:-1,qz=W()<.5?1:-1,x=i*S+qx*(RW+2.3),z=-j*S+qz*(RW+2.3),ry=Math.atan2(-qx,-qz);
+      mirrorPole.push({p:[x,0,z]});mirrorHead.push({p:[x,2.85,z],ry});mirrorFace.push({p:[x-Math.sin(ry)*-.045,2.85,z-Math.cos(ry)*-.045],ry});}}
+  for(const[A,d]of edges)for(const dd of[d,(d+2)%4]){const A2=dd===d?A:[A[0]+DI[d],A[1]+DJ[d]];const ry=Math.atan2(-DX[dd],-DZ[dd]);const[x,z]=ePt(A2,dd,S/2-3,RW+.75);
+    if(W()<.6)put(1,x,z,2.4,ry);else if(W()<.5){const[x2,z2]=ePt(A2,dd,S/2+4,RW+.75);put(2,x2,z2,2.4,ry);}}
+  const geos=[new THREE.PlaneGeometry(.6,.6),new THREE.CircleGeometry(.3,24),new THREE.CircleGeometry(.3,24)];
+  geos.forEach((g,k)=>{const uv=g.attributes.uv;for(let q=0;q<uv.count;q++)uv.setX(q,(k+uv.getX(q))/3);inst(g,sm,signs[k]);});
+  const bm=mat(0x9a9d9f);inst(new THREE.PlaneGeometry(.6,.6),bm,backs[0]);inst(new THREE.CircleGeometry(.3,24),bm,backs[1]);inst(new THREE.CircleGeometry(.3,24),bm,backs[2]);
+  inst(new THREE.CylinderGeometry(.035,.035,2.9,6).translate(0,1.45,0),mat(0x9a9d9f),sp);
+  inst(new THREE.CylinderGeometry(.045,.045,2.85,6).translate(0,1.42,0),mat(0xe06f2a),mirrorPole);
+  inst(new THREE.CylinderGeometry(.42,.42,.07,20).rotateX(Math.PI/2),mat(0xe06f2a),mirrorHead);
+  inst(new THREE.CircleGeometry(.37,20),new THREE.MeshPhongMaterial({color:0xd5dde4,shininess:100,specular:0xffffff}),mirrorFace);
+  inst(new THREE.CylinderGeometry(.035,.035,.85,6).translate(0,.42,0),mat(0xebebe6),gpPost);
+  inst(new THREE.BoxGeometry(1,1,1),mat(0xebebe6),gpRail);
+}
+
+// signals (横型・左から青黄赤、交差点の向こう側左)
+const sigPoles=[],sigArms=[],sigHouses=[],lampList=[],approaches=[];
+for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++)for(let d=0;d<4;d++){
+  if(!inGrid(i-DI[d],j-DJ[d]))continue;
+  const[lx,lz]=leftOf(d);const px=i*S+DX[d]*(RW+1)+lx*(RW+.6),pz=-j*S+DZ[d]*(RW+1)+lz*(RW+.6);
+  const hx=px-lx*1.9,hz=pz-lz*1.9;const ryH=Math.atan2(-lz,lx),ryL=Math.atan2(-DX[d],-DZ[d]);
+  sigPoles.push({p:[px,0,pz]});sigArms.push({p:[px-lx*.95,5.3,pz-lz*.95],s:[1.9,.1,.1],ry:ryH});sigHouses.push({p:[hx,5.3,hz],s:[1.32,.4,.28],ry:ryH});
+  const base=lampList.length;for(let k=0;k<3;k++)lampList.push({p:[hx-DX[d]*.15+lx*(1-k)*.41,5.3,hz-DZ[d]*.15+lz*(1-k)*.41],ry:ryL,c:0x222222});
+  approaches.push({i,j,d,base});}
+inst(new THREE.CylinderGeometry(.1,.12,5.6,8).translate(0,2.8,0),mat(0x8c9196),sigPoles);
+inst(new THREE.BoxGeometry(1,1,1),mat(0x8c9196),sigArms);inst(new THREE.BoxGeometry(1,1,1),mat(0x585d63),sigHouses);
+const lampMesh=inst(new THREE.CircleGeometry(.13,16),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),lampList);
+const LAMP=[[0x123a2e,0x19e0a4],[0x3b310e,0xffc400],[0x3c0f0f,0xff2e1f]];
+// 歩行者用信号（横断歩道の両端、向かい側を向く。上が赤・下が青）
+const pedAp=[],pedBox=[],pedPole=[],pedLampL=[];
+for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++)for(let e=0;e<4;e++){if(!inGrid(i+DI[e],j+DJ[e]))continue;const[lx,lz]=leftOf(e);
+  for(const sg of[1,-1]){const x=i*S+DX[e]*(RW+3.6)+lx*sg*(RW+1.1),z=-j*S+DZ[e]*(RW+3.6)+lz*sg*(RW+1.1),ry=Math.atan2(-lx*sg,-lz*sg);
+    pedPole.push({p:[x,0,z]});pedBox.push({p:[x,2.35,z],ry});const base=pedLampL.length;
+    for(const y of[2.53,2.17])pedLampL.push({p:[x-Math.sin(ry)*-.14,y,z-Math.cos(ry)*-.14],ry,c:0x222222});pedAp.push({i,j,e,base});}}
+inst(new THREE.CylinderGeometry(.06,.06,2.1,6).translate(0,1.05,0),mat(0x8c9196),pedPole);
+inst(new THREE.BoxGeometry(.36,.76,.26).translate(0,0,0),mat(0x5d6267),pedBox);
+const pedLampMesh=inst(new THREE.PlaneGeometry(.24,.24),new THREE.MeshBasicMaterial({color:0xffffff,fog:false}),pedLampL);
+function updateLamps(){for(const a of approaches){const lt=light(a.i,a.j,axisOf(a.d));const idx=lt==='G'?0:lt==='Y'?1:2;
+  for(let k=0;k<3;k++){tmpC.setHex(LAMP[k][k===idx?1:0]);lampMesh.setColorAt(a.base+k,tmpC);}}lampMesh.instanceColor.needsUpdate=true;
+  for(const a of pedAp){const ax=axisOf(a.e),go=light(a.i,a.j,ax)==='R'&&light(a.i,a.j,ax==='X'?'Z':'X')==='G';
+    tmpC.setHex(go?0x3c1414:0xff3a2a);pedLampMesh.setColorAt(a.base,tmpC);tmpC.setHex(go?0x2ef0b0:0x123a2e);pedLampMesh.setColorAt(a.base+1,tmpC);}pedLampMesh.instanceColor.needsUpdate=true;}
+
+// landmarks + goal
+const POI=[['コンビニ','#2fa35a'],['郵便局','#d2332b'],['公園','#3a7d3f'],['図書館','#7a5a2e'],['薬局','#2a8fbd'],['銀行','#4b4f9c'],['歯医者','#3fa7a0'],['美容室','#c2569a'],['学習塾','#d98a1e'],['ラーメン','#b8402c'],['交番','#2d4f8a'],['クリーニング','#5d8fc9'],['花屋','#d1607a'],['書店','#8a6d3b'],['コインランドリー','#6b7c8f'],['カフェ','#7a4e2d']];
+const LANDMARKS=[];{const used={};for(const[name,bg]of POI){for(let t=0;t<30;t++){const i=(W()*NX)|0,j=(W()*NZ)|0,qx=W()<.5?1:-1,qz=W()<.5?1:-1;const key=i+','+j+','+qx+qz;if(used[key])continue;
+  const x=i*S+qx*(RW+4.5),z=-j*S+qz*(RW+4.5);if(x<0||x>(NX-1)*S||z>0||z<-(NZ-1)*S)continue;used[key]=1;LANDMARKS.push({name,bg,x,z});break;}}}
+const ST_NAMES_X=['桜通り','本町通り','旭通り','緑町線','中央通り','栄通り'],ST_NAMES_Z=['駅前通り','若葉通り','東通り','新町線','川端通り','宮下通り','北通り'];
+for(const L of LANDMARKS){const b=textBoard(L.name,Math.max(3,L.name.length*.72),1.1,L.bg,'#ffffff',86);b.position.set(L.x,4.2,L.z);b.rotation.y=Math.PI/4;scene.add(b);
+  const b2=b.clone();b2.rotation.y=-Math.PI/4;scene.add(b2);const p=box(.15,3.7,.15,0x77736c);p.position.set(L.x,1.85,L.z);scene.add(p);}
+{const gx=GOAL[0]*S,gz=-GOAL[1]*S;const sign=textBoard('大学 正門',5,1.3,'#1b5cbd','#ffffff',100);sign.position.set(gx+RW+4,4.3,gz-RW-4);sign.rotation.y=-Math.PI/4;scene.add(sign);
+  for(const o of[[-2.4,2.4],[2.4,-2.4]]){const p=box(.6,4.6,.6,0xe2ddd2);p.position.set(gx+RW+4+o[0]*.71,2.3,gz-RW-4+o[1]*.71);scene.add(p);}
+  for(let k=0;k<3;k++){const b=box(14,9+k*3,10,0xeae6dc);b.position.set(gx+RW+22+k*14,4.5+k*1.5,gz-RW-24-k*6);scene.add(b);}}
+
+/* ================= actors ================= */
+const PCOL=[0x2b2f3a,0xe9e7e2,0x6d7a6a,0x8a6e57,0x1f2a44,0x9aa3ad,0xc9b79a,0x3f4a5a,0xb5483f,0xf1efe8];
+function makePerson(shirt,h=1.7,pants=0x2b3140,hair=0x1d1a18){const g=new THREE.Group();const hl=h*.46;
+  const geo=mergeGeometries([colorize(new THREE.BoxGeometry(.4,h*.32,.22).translate(0,hl+h*.16,0),shirt),colorize(new THREE.SphereGeometry(h*.068,10,8).translate(0,h*.86,0),0xe3bf9b),colorize(new THREE.SphereGeometry(h*.073,10,8,0,Math.PI*2,0,Math.PI*.55).translate(0,h*.865,0),hair)]);
+  g.add(new THREE.Mesh(geo,vcMat));const lg=colorize(new THREE.BoxGeometry(.13,hl,.15).translate(0,-hl/2,0),pants);
+  g.userData.legs=[-.08,.08].map(x=>{const l=new THREE.Mesh(lg,vcMat);l.position.set(x,hl,0);g.add(l);return l;});g.visible=false;scene.add(g);return{g,ph:0,active:false};}
+function placeP(p,x,z,hx,hz,sp,dt){p.x=x;p.z=z;p.g.position.set(x,0,z);if(hx||hz)p.g.rotation.y=Math.atan2(hx,hz);
+  p.ph+=dt*sp*5;const a=Math.sin(p.ph)*.5*Math.min(1,sp);p.g.userData.legs[0].rotation.x=a;p.g.userData.legs[1].rotation.x=-a;}
+const people=[];for(let k=0;k<30;k++)people.push(makePerson(PCOL[k%PCOL.length],k%9===4?1.15:1.6+W()*.15,k%3?0x2b3140:0x4a4038,k%9===4?0x1b1918:(k%4?0x15130f:0x4a3426)));
+// 日本の車：軽ワゴン・セダン・タクシー・軽トラ・ワンボックス（前が -Z）
+const carGeos={};
+function carGeo(type,c){const key=type+c;if(carGeos[key])return carGeos[key];const P=[];const B=(w,h,d,x,y,z,col)=>P.push(colorize(new THREE.BoxGeometry(w,h,d).translate(x,y+h/2,z),col));
+  const GL=0x26313b;let Wd=1.47,Ln=3.39,wr=.27,plate=0xf2d22e;
+  if(type==='kei'){B(1.47,.72,3.39,0,.28,0,c);B(1.43,.84,2.55,0,1.0,.38,GL);B(1.45,.08,2.62,0,1.84,.36,c);B(1.47,.28,.55,0,1.0,-1.4,c);for(const sx of[-1,1])B(.07,.84,.1,sx*.69,1.0,-.88,c);}
+  else if(type==='sedan'||type==='taxi'){Wd=1.75;Ln=4.55;wr=.31;plate=0xf3f3ee;B(1.75,.62,4.55,0,.3,0,c);B(1.6,.52,2.35,0,.92,.15,GL);B(1.56,.07,1.95,0,1.44,.2,c);
+    if(type==='taxi'){B(.48,.2,.26,0,1.51,.3,0xf1ede0);B(.32,.1,.03,0,1.02,-.99,0xd8322a);B(1.77,.06,4.4,0,.72,0,0xe9c45a);}}
+  else if(type==='truck'){wr=.26;B(1.47,1.3,1.25,0,.3,-1.07,c);B(1.40,.5,.06,0,1.0,-1.7,GL);B(1.49,.42,.8,0,1.0,-1.05,GL);B(1.47,.08,2.05,0,.72,.68,0x9aa0a6);
+    for(const sx of[-1,1])B(.04,.32,2.05,sx*.72,.8,.68,c);B(1.47,.32,.04,0,.8,1.69,c);B(1.47,.55,.05,0,.8,-.42,0x7f868c);}
+  else{Wd=1.69;Ln=4.69;wr=.3;plate=0xf3f3ee;B(1.69,1.6,4.69,0,.35,0,c);B(1.71,.5,3.1,0,1.3,.55,GL);B(1.6,.62,.06,0,1.2,-2.35,GL);}
+  const wg=new THREE.CylinderGeometry(wr,wr,.2,12).rotateZ(Math.PI/2);for(const sx of[-1,1])for(const sz of[-1,1])P.push(colorize(wg.clone().translate(sx*(Wd/2-.08),wr,sz*(Ln/2-.62)),0x141518));
+  for(const sx of[-1,1]){B(.26,.12,.04,sx*(Wd/2-.28),.66,-Ln/2-.01,0xfff3d0);B(.24,.14,.04,sx*(Wd/2-.25),.72,Ln/2+.01,0xc0262b);}
+  B(.33,.17,.03,0,.42,-Ln/2-.02,plate);B(.33,.17,.03,0,.42,Ln/2+.02,plate);
+  return carGeos[key]=mergeGeometries(P);}
+const CAR_KIND=[['kei',[0xf2f2ee,0xe9dcc4,0x1d1f22,0x9cc3d8,0xe5b9c1,0x8ca07a,0xd9d2c4,0xb23a3a]],['sedan',[0xf2f2ee,0x9aa1a8,0x23262b,0x6b1f24,0x2f4f7f]],['taxi',[0x1c2240,0x1c2240,0xe6c440]],['truck',[0xf0f0ec]],['van',[0xf0f0ec,0xb7bcc1]]];
+const KIND_OF=[0,0,0,0,1,1,1,2,3,4];
+const carPool=[];for(let k=0;k<42;k++){const[t,cs]=CAR_KIND[KIND_OF[k%10]];const m=new THREE.Mesh(carGeo(t,cs[(k*7+3)%cs.length]),vcMat);m.visible=false;scene.add(m);carPool.push(m);}
+
+/* ================= bike front (mamachari) ================= */
+const bike=new THREE.Group();rig.add(bike);
+const bars=new THREE.Group();bars.position.set(0,1.08,-.55);bike.add(bars);
+{const hb=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.6,10),mat(0xc3c8ce));hb.rotation.z=Math.PI/2;bars.add(hb);
+  for(const s of[-1,1]){bars.add(cylBetween(new THREE.Vector3(s*.3,0,0),new THREE.Vector3(s*.33,.01,.09),.012,0xc3c8ce));
+    const gr=new THREE.Mesh(new THREE.CylinderGeometry(.019,.019,.12,10),mat(0x1c1c1e));gr.position.set(s*.335,.01,.12);gr.rotation.x=Math.PI/2;bars.add(gr);}
+  bars.add(cylBetween(new THREE.Vector3(0,0,0),new THREE.Vector3(0,-.74,-.45),.017,0x9aa1a8));
+  const wh=new THREE.Mesh(new THREE.TorusGeometry(.33,.024,8,40),mat(0x151515));wh.rotation.y=Math.PI/2;wh.position.set(0,-.74,-.45);bars.add(wh);
+  const gc=document.createElement('canvas');gc.width=gc.height=64;const g=gc.getContext('2d');g.strokeStyle='#c9cdd2';g.lineWidth=3;g.strokeRect(1,1,62,62);for(let i=0;i<64;i+=10){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.moveTo(0,i);g.lineTo(64,i);g.stroke();}
+  const gt=new THREE.CanvasTexture(gc);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(3,2);
+  const bk=new THREE.Mesh(new THREE.BoxGeometry(.4,.25,.3),new THREE.MeshBasicMaterial({map:gt,transparent:true,alphaTest:.3,side:THREE.DoubleSide,color:0xbfc4ca}));bk.position.set(0,-.17,-.24);bars.add(bk);
+  const bell=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8,0,Math.PI*2,0,Math.PI/2),mat(0xd4d8dc));bell.position.set(.22,.02,.03);bars.add(bell);}
+const compCv=document.createElement('canvas');compCv.width=240;compCv.height=150;const cc=compCv.getContext('2d');
+const compTex=new THREE.CanvasTexture(compCv);compTex.colorSpace=THREE.SRGBColorSpace;
+{const body=box(.12,.08,.02,0x1b1d20);body.position.set(.1,.045,.02);body.rotation.x=-1;bars.add(body);
+  const sc=new THREE.Mesh(new THREE.PlaneGeometry(.106,.066),new THREE.MeshBasicMaterial({map:compTex,fog:false}));sc.position.z=.011;body.add(sc);}
+
+/* ================= phone ================= */
+const PW=360,PH=740,PS=1.5;const phoneCv=document.createElement('canvas');phoneCv.width=PW*PS;phoneCv.height=PH*PS;const pc=phoneCv.getContext('2d');
+const phoneTex=new THREE.CanvasTexture(phoneCv);phoneTex.colorSpace=THREE.SRGBColorSpace;phoneTex.anisotropy=4;
+const phone=new THREE.Group();phone.add(new THREE.Mesh(new THREE.BoxGeometry(.074,.152,.009),mat(0x101114)));
+{const s=new THREE.Mesh(new THREE.PlaneGeometry(.068,.14),new THREE.MeshBasicMaterial({map:phoneTex,fog:false}));s.position.z=.0047;phone.add(s);}
+phone.visible=false;rig.add(phone);
+const P_HOLD={p:new THREE.Vector3(-.1,1.19,-.29),r:new THREE.Euler(-.73,.25,.08)};
+camera.rotation.order='YXZ';
+const vrCv=document.createElement('canvas');vrCv.width=1024;vrCv.height=760;const vc=vrCv.getContext('2d');
+const vrTex=new THREE.CanvasTexture(vrCv);vrTex.colorSpace=THREE.SRGBColorSpace;
+const vrPanel=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.04),new THREE.MeshBasicMaterial({map:vrTex,fog:false}));vrPanel.position.set(0,1.35,-1.5);vrPanel.visible=false;rig.add(vrPanel);
+const flashMesh=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),new THREE.MeshBasicMaterial({color:0xff2a2a,transparent:true,opacity:0,side:THREE.BackSide,depthTest:false,fog:false}));flashMesh.renderOrder=999;camera.add(flashMesh);
+
+/* ================= audio & voice ================= */
+let ac=null;
+function audio(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ac&&ac.state==='suspended')ac.resume();}
+function tone(f,dur,type='sine',g=.12,when=0){if(!ac)return;const o=ac.createOscillator(),gn=ac.createGain();o.type=type;o.frequency.value=f;const t0=ac.currentTime+when;gn.gain.setValueAtTime(0,t0);gn.gain.linearRampToValueAtTime(g,t0+.01);gn.gain.exponentialRampToValueAtTime(.0001,t0+dur);o.connect(gn).connect(ac.destination);o.start(t0);o.stop(t0+dur+.05);}
+const sBell=()=>{tone(2093,.7,'triangle',.11);tone(2637,.5,'sine',.05);tone(2093,.5,'triangle',.08,.18);};
+const sHorn=()=>{tone(392,.45,'square',.05);tone(494,.45,'square',.05);};
+const sChime=()=>{tone(880,.12,'sine',.08);tone(1175,.18,'sine',.08,.1);};
+function sCrash(){if(!ac)return;const n=ac.sampleRate*.35,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=ac.createBufferSource();s.buffer=b;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=ac.createGain();g.gain.value=.5;s.connect(f).connect(g).connect(ac.destination);s.start();}
+function say(t){if(mode!=='normal')return;sChime();try{if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=1.1;const vj=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('ja'));if(vj)u.voice=vj;setTimeout(()=>speechSynthesis.speak(u),250);}catch(e){}}
+
+/* ================= state ================= */
+let state='menu',mode='normal',xr=false;
+let T=0,bx=0,bz=0,yaw=0,v=0,wob=0,steerIn=0,cool=0,flash=0,shake=0,rigY=0,calibT=-1;
+let gazing=false,prevGaze=false,bellT=-99,lookYaw=0,lookPitch=0,gz=0;
+let cars=[],parked=[],walkers=[],crossers=[],dart=null,hazards=[],route=[],curB=null,lastL=null,navCur=null,navSaid={};
+let rr=Math.random,distSinceDart=0,nextDartDist=100,crossDone={},prevLt={};
+let prevBrake=0,prevSteer=0,started=false,phoneT=0,compT=0,hudT=0,curbCool=0;
+let stats={};const results={normal:null,phone:null};
+
+/* ================= navigation ================= */
+function locate(x,z){const fx=-Math.sin(yaw),fz=-Math.cos(yaw);const gi=Math.round(x/S),gj=Math.round(-z/S);const dx=x-gi*S,dz=z+gj*S;
+  if(Math.abs(dx)<=RW&&Math.abs(dz)<=RW)return{node:true,i:gi,j:gj};
+  let A,d,s;
+  if(Math.abs(dz)<=RW){const i0=Math.floor(x/S);d=fx>=0?1:3;A=d===1?[i0,gj]:[i0+1,gj];s=d===1?x-i0*S:(i0+1)*S-x;}
+  else{const j0=Math.floor(-z/S);d=fz<=0?0:2;A=d===0?[gi,j0]:[gi,j0+1];s=d===0?(-z-j0*S):((j0+1)*S+z);}
+  const B=[A[0]+DI[d],A[1]+DJ[d]];const[lx,lz]=leftOf(d);const lat=(x-A[0]*S)*lx+(z+A[1]*S)*lz;return{edge:true,A,B,d,s,lat};}
+const same=(a,b)=>a&&b&&a[0]===b[0]&&a[1]===b[1];
+const man=n=>Math.abs(n[0]-GOAL[0])+Math.abs(n[1]-GOAL[1]);
+function dirBetween(a,b){for(let d=0;d<4;d++)if(a[0]+DI[d]===b[0]&&a[1]+DJ[d]===b[1])return d;return 0;}
+function quantDir(){const fx=-Math.sin(yaw),fz=-Math.cos(yaw);let best=0,bv=-9;for(let d=0;d<4;d++){const q=DX[d]*fx+DZ[d]*fz;if(q>bv){bv=q;best=d;}}return best;}
+function plan(B,axis){const r=[B.slice()];let[i,j]=B;let last=axis;while(i!==GOAL[0]||j!==GOAL[1]){const di=Math.sign(GOAL[0]-i),dj=Math.sign(GOAL[1]-j);let mv;
+  // 両方向に余地があるときは毎ブロック曲がる（覚えにくいジグザグ経路）
+  if(di&&dj)mv=last==='X'?'Z':'X';else mv=di?'X':'Z';if(mv==='X')i+=di;else j+=dj;last=mv;r.push([i,j]);}return r;}
+function onNext(A,B,d){if(!inGrid(B[0],B[1]))return;if(route.length&&same(route[0],B))return;
+  if(route.length>1&&same(route[0],A)&&same(route[1],B)){route.shift();return;}
+  const wrong=man(B)>=man(A);route=plan(B,axisOf(d));
+  if(wrong){stats.wrong++;showAlert('道を間違えた','info');say('ルートを外れました。再検索します');if(mode==='phone'){navSent={};navTrig={};pushYuta(pickR(['え、そっちじゃない！','違う違う笑','逆だよ！']),true);}}}
+function navInfo(L){if(!route.length)return null;let dist,inDir;
+  if(L.edge&&same(L.B,route[0])){dist=S-L.s;inDir=L.d;}else{const n=route[0];dist=Math.hypot(bx-n[0]*S,bz+n[1]*S);inDir=L.edge?L.d:quantDir();}
+  const total=dist+(route.length-1)*S;let acc=dist;
+  for(let k=0;k<route.length;k++){if(k===route.length-1)return{turn:'goal',dist:acc,total,key:'g'};
+    const out=dirBetween(route[k],route[k+1]);if(out!==inDir)return{turn:out===(inDir+1)%4?'right':out===(inDir+3)%4?'left':'uturn',dist:acc,total,key:route[k].join(',')+'>'+out};inDir=out;acc+=S;}}
+const TURNJ={right:'右',left:'左',uturn:'Uターン',goal:'目的地'};
+
+/* ================= hazards ================= */
+function hazard(type,brakeOnly=false){const h={type,brakeOnly,onset:T,reaction:null,gazed:gazing,hit:false};hazards.push(h);return h;}
+
+/* ================= traffic ================= */
+function carState(c){if(c.turn){const t=c.turn.t,u=1-t,P=c.turn;const x=u*u*P.p0[0]+2*u*t*P.c[0]+t*t*P.p2[0],z=u*u*P.p0[1]+2*u*t*P.c[1]+t*t*P.p2[1];
+    let hx=2*u*(P.c[0]-P.p0[0])+2*t*(P.p2[0]-P.c[0]),hz=2*u*(P.c[1]-P.p0[1])+2*t*(P.p2[1]-P.c[1]);const l=Math.hypot(hx,hz)||1;return[x,z,hx/l,hz/l];}
+  const[x,z]=ePt([c.i,c.j],c.d,c.s,LO);return[x,z,DX[c.d],DZ[c.d]];}
+function chooseNext(c){const B=[c.i+DI[c.d],c.j+DJ[c.d]];const opts=[0,1,2,3].filter(nd=>nd!==(c.d+2)%4&&inGrid(B[0]+DI[nd],B[1]+DJ[nd]));
+  if(opts.includes(c.d)&&rr()<.5)return c.d;return opts[(rr()*opts.length)|0];}
+function spawnCar(c,near){for(let tries=0;tries<40;tries++){const i=(rr()*NX)|0,j=(rr()*NZ)|0,d=(rr()*4)|0;if(!inGrid(i+DI[d],j+DJ[d]))continue;const s=RW+6+rr()*(S-2*RW-18);
+    const[x,z]=ePt([i,j],d,s,LO);const dist=Math.hypot(x-bx,z-bz);if(near&&(dist<55||dist>135))continue;if(!near&&dist<18)continue;if(cars.some(o=>o!==c&&Math.hypot(o.x-x,o.z-z)<14))continue;
+    Object.assign(c,{i,j,d,s,v:6,turn:null,nd:null,x,z,hx:DX[d],hz:DZ[d],stopUntil:0,nearT:0,cruise:8+rr()*2.5});return true;}return false;}
+function updateCars(dt){
+  for(const c of cars){let vt=c.stopUntil>T?0:c.cruise;
+    if(!c.turn){if(c.nd===null&&c.s>S-RW-32)c.nd=chooseNext(c);
+      if(c.nd!==null&&c.nd!==c.d){const dt2=Math.max(0,S-RW-c.s);vt=Math.min(vt,Math.sqrt(30+6*dt2));}
+      const stopS=S-RW-3.2;if(c.s<stopS+.5){const B=[c.i+DI[c.d],c.j+DJ[c.d]];const lt=light(B[0],B[1],axisOf(c.d));
+        if(lt!=='G'){const dist=stopS-c.s;if(lt==='R'||dist>c.v*c.v/12)vt=Math.min(vt,Math.sqrt(Math.max(0,10*(dist-.2))));}}}
+    else vt=Math.min(vt,5.5);
+    // obstacles ahead
+    const obs=(ox,oz,w,gap0)=>{const rx=ox-c.x,rz=oz-c.z;const ah=rx*c.hx+rz*c.hz;if(ah<=0||ah>28)return;const lat=Math.abs(rx*c.hz-rz*c.hx);if(lat>w)return;vt=Math.min(vt,Math.sqrt(Math.max(0,12*(ah-gap0))));};
+    for(const o of cars)if(o!==c)obs(o.x,o.z,1.7,5.6);
+    obs(bx,bz,1.4,3.4);
+    for(const p of crossers)if(p.active)obs(p.x,p.z,1.5,3.2);
+    if(dart&&dart.p.active)obs(dart.p.x,dart.p.z,1.5,3.2);
+    c.v+=clamp(vt-c.v,-9*dt,2.8*dt);c.v=Math.max(0,c.v);
+    if(c.turn){c.turn.t+=c.v*dt/c.turn.len;if(c.turn.t>=1){const B=c.turn.B;const over=(c.turn.t-1)*c.turn.len;c.i=B[0];c.j=B[1];c.d=c.turn.nd;c.s=RW+over;c.turn=null;c.nd=null;}}
+    else{c.s+=c.v*dt;if(c.s>=S-RW){const B=[c.i+DI[c.d],c.j+DJ[c.d]];const nd=c.nd!==null?c.nd:chooseNext(c);const p0=ePt([c.i,c.j],c.d,c.s,LO);const p2=ePt(B,nd,RW,LO);
+      let ctrl;if(nd===c.d)ctrl=[(p0[0]+p2[0])/2,(p0[1]+p2[1])/2];else{const[a,b]=leftOf(c.d),[e,f]=leftOf(nd);ctrl=[B[0]*S+(a+e)*LO,-B[1]*S+(b+f)*LO];}
+      const len=nd===c.d?Math.hypot(p2[0]-p0[0],p2[1]-p0[1]):(Math.hypot(ctrl[0]-p0[0],ctrl[1]-p0[1])+Math.hypot(p2[0]-ctrl[0],p2[1]-ctrl[1]))*.9;
+      c.turn={p0,c:ctrl,p2,t:0,len:Math.max(len,1),B,nd};}}
+    const st=carState(c);c.x=st[0];c.z=st[1];c.hx=st[2];c.hz=st[3];
+    c.mesh.position.set(c.x,0,c.z);c.mesh.rotation.y=Math.atan2(-c.hx,-c.hz);
+    if(Math.hypot(c.x-bx,c.z-bz)>150)spawnCar(c,true);}
+}
+
+// 交通ディレクター：自転車が向かう交差点の周りに車を集め、信号待ちの列や対向車・交差する車をつくる
+let dirT=0;
+function director(dt,L){dirT-=dt;if(dirT>0||!L.edge)return;dirT=.5;const N=L.B;if(!inGrid(N[0],N[1]))return;
+  const nx=N[0]*S,nz=-N[1]*S;if(cars.filter(c=>Math.hypot(c.x-nx,c.z-nz)<S*.85).length>=8&&cars.filter(c=>Math.hypot(c.x-bx,c.z-bz)<70).length>=6)return;
+  let far=null,fd=0;for(const c of cars){const d=Math.hypot(c.x-bx,c.z-bz);if(d>fd){fd=d;far=c;}}if(!far||fd<95)return;
+  const opts=[];
+  for(let e=0;e<4;e++){const P=[N[0]+DI[e],N[1]+DJ[e]];if(!inGrid(P[0],P[1]))continue;
+    if(e===(L.d+2)%4){for(let w=0;w<3;w++)opts.push({A:P,d:L.d,smin:RW+2,smax:L.s-22});opts.push({A:P,d:L.d,smin:L.s+26,smax:S-RW-6});opts.push({A:N,d:e,smin:RW+3,smax:S-L.s-26});}
+    else for(let w=0;w<3;w++){opts.push({A:P,d:(e+2)%4,smin:RW+5,smax:S-RW-8});opts.push({A:N,d:e,smin:RW+5,smax:S-RW-20});}}
+  for(let t=0;t<6;t++){const o=opts[(rr()*opts.length)|0];if(!o||o.smax<o.smin)continue;const s=o.smin+rr()*(o.smax-o.smin);const[x,z]=ePt(o.A,o.d,s,LO);
+    if(cars.some(c=>c!==far&&Math.hypot(c.x-x,c.z-z)<9))continue;
+    Object.assign(far,{i:o.A[0],j:o.A[1],d:o.d,s,v:far.cruise*.7,turn:null,nd:null,stopUntil:0,x,z,hx:DX[o.d],hz:DZ[o.d]});return;}}
+
+/* ================= pedestrians ================= */
+function takePerson(){const p=people.find(q=>!q.active);if(p){p.active=true;p.g.visible=true;}return p;}
+function freePerson(p){if(!p)return;p.active=false;p.g.visible=false;}
+function updatePeds(dt,L){
+  for(const w of walkers){w.s+=w.dir*w.sp*dt;if(w.s>S-RW-3||w.s<RW+3){w.dir*=-1;w.s=clamp(w.s,RW+3,S-RW-3);}const[x,z]=ePt(w.A,w.d,w.s,w.side*(RW+1.6));placeP(w.p,x,z,DX[w.d]*w.dir,DZ[w.d]*w.dir,w.sp,dt);}
+  // 横断歩道：自分の進行方向が赤のとき、向こう側・手前の横断歩道を人が渡る
+  if(L.edge&&inGrid(L.B[0],L.B[1])){const ax=axisOf(L.d),lt=light(L.B[0],L.B[1],ax),dN=S-L.s;const key=L.B.join(',')+'/'+Math.floor((T+phaseOff[L.B[0]][L.B[1]])/CYC)+ax;
+    if(lt==='R'&&dN<80&&dN>14&&!crossDone[key]){crossDone[key]=1;const arms=[L.d,(L.d+2)%4].filter(e=>inGrid(L.B[0]+DI[e],L.B[1]+DJ[e]));let k=0;
+      for(const e of arms)for(let n=0;n<(e===L.d?2:1);n++){const p=takePerson();if(!p)break;const dir=rr()<.5?1:-1;crossers.push(p);Object.assign(p,{B:L.B.slice(),e,dir,lat:-dir*(RW+2.2),sp:1.15+rr()*.4,wait:k++*.9+rr()*.6,hit:false});const[x,z]=ePt(p.B,p.e,RW+2+(rr()-.5)*1.6,p.lat);p.x=x;p.z=z;p.g.position.set(x,0,z);}}}
+  for(const p of crossers){if(!p.active)continue;if(p.wait>0){p.wait-=dt;continue;}if(!(p.stop>T))p.lat+=p.dir*p.sp*dt;
+    const[x,z]=ePt(p.B,p.e,RW+2,p.lat);const[lx,lz]=leftOf(p.e);placeP(p,x,z,lx*p.dir,lz*p.dir,p.stop>T?0:p.sp,dt);if(Math.abs(p.lat)>RW+2.4)freePerson(p);}
+  crossers=crossers.filter(p=>p.active);
+  // 飛び出し（予告なし）
+  if(!dart&&L.edge&&v>3&&distSinceDart>nextDartDist){const spot=L.s+24;if(spot<S-RW-6&&spot>RW+8){const p=takePerson();if(p){const side=rr()<.65?1:-1;const lat0=side*(RW+1.2);
+      const[x,z]=ePt(L.A,L.d,spot,lat0);p.x=x;p.z=z;p.g.position.set(x,0,z);const[lx,lz]=leftOf(L.d);p.g.rotation.y=Math.atan2(-lx*side,-lz*side);
+      dart={p,A:L.A.slice(),d:L.d,spot,side,lat:lat0,state:'wait',h:null,car:null};
+      if(side>0&&rr()<.7){const m=carPool.find(c=>!c.visible);if(m){const[cx,cz]=ePt(L.A,L.d,spot-4,3.55);m.visible=true;m.position.set(cx,0,cz);m.rotation.y=Math.atan2(-DX[L.d],-DZ[L.d]);dart.car={mesh:m,x:cx,z:cz,hx:DX[L.d]?2.1:.85,hz:DX[L.d]?.85:2.1};parked.push(dart.car);}}}}}
+  if(dart){const D=dart;const onEdge=L.edge&&same(L.A,D.A)&&L.d===D.d;const ahead=onEdge?D.spot-L.s:-99;
+    if(D.state==='wait'){if(onEdge&&ahead>1.5&&ahead<Math.max(v,2)*1.8){D.state='run';const eta=ahead/Math.max(v,2);D.sp=clamp(Math.abs(D.lat-L.lat)/Math.max(eta,.6),1.6,3.4);D.h=hazard('飛び出し');}
+      else if(!onEdge||ahead<-2)D.state='gone';}
+    if(D.state==='run'){if(!(D.p.stop>T))D.lat-=D.side*D.sp*dt;const[x,z]=ePt(D.A,D.d,D.spot,D.lat);const[lx,lz]=leftOf(D.d);placeP(D.p,x,z,-lx*D.side,-lz*D.side,D.p.stop>T?0:D.sp,dt);if(Math.abs(D.lat)>RW+1.6&&Math.sign(D.lat)!==D.side)D.state='gone';}
+    if(D.state==='gone'&&(!onEdge||ahead<-25||L.node)){freePerson(D.p);if(D.car){D.car.mesh.visible=false;parked=parked.filter(q=>q!==D.car);}dart=null;distSinceDart=0;nextDartDist=85+rr()*70;}}
+}
+
+/* ================= input ================= */
+const keys={};
+addEventListener('keydown',e=>{if(state==='play'&&['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.repeat)return;keys[e.code]=true;
+  if(state!=='play')return;if(e.code==='KeyE')ringBell();if(e.code==='KeyC'){lookYaw=0;lookPitch=0;}if(e.code==='KeyQ')toMenu();});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+// 視点操作：クリックでポインタロック、ロックできない環境ではドラッグ
+const look=(mx,my)=>{lookYaw=clamp(lookYaw-mx*.0026,-1.5,1.5);lookPitch=clamp(lookPitch-my*.0026,-1.15,.5);};
+let drag=null;
+canvas.addEventListener('pointerdown',e=>{if(state!=='play'||xr)return;if(e.pointerType==='mouse'&&!document.pointerLockElement){try{const p=canvas.requestPointerLock();if(p&&p.catch)p.catch(()=>{});}catch(_){}}drag={id:e.pointerId,x:e.clientX,y:e.clientY};try{canvas.setPointerCapture(e.pointerId);}catch(_){}});
+canvas.addEventListener('pointermove',e=>{if(state!=='play'||xr)return;if(document.pointerLockElement===canvas){look(clamp(e.movementX,-80,80),clamp(e.movementY,-80,80));return;}if(drag&&drag.id===e.pointerId){const k=e.pointerType==='touch'?-1.6:1.4;look((e.clientX-drag.x)*k,(e.clientY-drag.y)*k);drag.x=e.clientX;drag.y=e.clientY;}});
+const endDrag=()=>{drag=null;};canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+const unlock=()=>{try{if(document.pointerLockElement)document.exitPointerLock();}catch(_){}};
+const touch={};
+document.querySelectorAll('[data-hold]').forEach(b=>{const k=b.dataset.hold;const on=e=>{e.preventDefault();touch[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}};const off=()=>{touch[k]=false;b.classList.remove('on');};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);});
+const prevBtn={};function btnEdge(k,p){const w=prevBtn[k];prevBtn[k]=p;return p&&!w;}
+function readInput(dt){let acc=0,brake=0,st=0,analog=false;
+  if(keys.KeyW||keys.ArrowUp||touch.acc)acc=1;if(keys.KeyS||keys.ArrowDown||touch.brake)brake=1;
+  if(keys.KeyA||keys.ArrowLeft||touch.left)st-=1;if(keys.KeyD||keys.ArrowRight||touch.right)st+=1;
+  const sess=renderer.xr.getSession();
+  if(sess)for(const src of sess.inputSources){const gp=src.gamepad;if(!gp||src.handedness!=='right')continue;const ax=gp.axes,sx=ax.length>=4?ax[2]:(ax[0]||0),sy=ax.length>=4?ax[3]:(ax[1]||0);const b=i=>!!(gp.buttons[i]&&gp.buttons[i].pressed);
+    if(-sy>.15)acc=Math.max(acc,-sy);if(sy>.35)brake=Math.max(brake,sy);const tv=gp.buttons[0]?gp.buttons[0].value:0;if(tv>.08)brake=Math.max(brake,tv);if(Math.abs(sx)>.12){st=sx;analog=true;}
+    const a=btnEdge('rA',b(4)),bb=btnEdge('rB',b(5));if(state==='play'){if(a)ringBell();if(bb)calibT=T;}else if(state==='result'&&xr){if(a)startRun('phone');if(bb)startRun('normal');}}
+  if(analog)steerIn=st;else steerIn+=clamp(st-steerIn,-dt*5,dt*5);return{acc,brake,steer:steerIn};}
+function ringBell(){bellT=T;sBell();}
+
+/* ================= UI helpers ================= */
+const ui={hud:$('#hud'),spd:$('#spd'),remain:$('#remain'),remainRow:$('#remainRow'),chip:$('#modeChip'),navMeter:$('#navMeter'),navTurn:$('#navTurn'),navDist:$('#navDist'),navArrow:$('#navArrow'),
+  gazeBox:$('#gazeBox'),gazeT:$('#gazeT'),gazeD:$('#gazeD'),gazeLive:$('#gazeLive'),alert:$('#alert'),hint:$('#hint'),touch:$('#touch')};
+let alertTimer=0;function showAlert(t,cls=''){ui.alert.textContent=t;ui.alert.className=cls;ui.alert.style.opacity=1;clearTimeout(alertTimer);alertTimer=setTimeout(()=>ui.alert.style.opacity=0,1500);}
+const coarse=matchMedia('(pointer:coarse)').matches;
+function haptic(hand,amt,ms){const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources)if(src.handedness===hand){try{src.gamepad?.hapticActuators?.[0]?.pulse(amt,ms);}catch(e){}}}
+function turnArrow(c,x,y,s,turn,color){c.save();c.translate(x,y);c.strokeStyle=color;c.fillStyle=color;c.lineWidth=s*.15;c.lineCap='round';c.lineJoin='round';
+  const head=(hx,hy,a)=>{c.save();c.translate(hx,hy);c.rotate(a);c.beginPath();c.moveTo(s*.2,0);c.lineTo(-s*.08,-s*.17);c.lineTo(-s*.08,s*.17);c.closePath();c.fill();c.restore();};
+  c.beginPath();
+  if(turn==='right'||turn==='left'){const g=turn==='right'?1:-1;c.moveTo(-g*s*.15,s*.45);c.lineTo(-g*s*.15,0);c.quadraticCurveTo(-g*s*.15,-s*.2,g*s*.05,-s*.2);c.lineTo(g*s*.18,-s*.2);c.stroke();head(g*s*.22,-s*.2,g>0?0:Math.PI);}
+  else if(turn==='uturn'){c.moveTo(s*.18,s*.45);c.lineTo(s*.18,-s*.1);c.arc(0,-s*.1,s*.18,0,Math.PI,true);c.lineTo(-s*.18,s*.1);c.stroke();head(-s*.18,s*.18,Math.PI/2);}
+  else{c.moveTo(0,s*.45);c.lineTo(0,-s*.2);c.stroke();head(0,-s*.26,-Math.PI/2);}
+  c.restore();}
+
+/* ================= phone: LINE talk ================= */
+const FONT='"Zen Kaku Gothic New","Hiragino Sans",sans-serif';
+function rr2(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function wrapT(c,t,maxW){const L=[];let cur='';for(const ch of t){if(c.measureText(cur+ch).width>maxW&&cur){L.push(cur);cur=ch;}else cur+=ch;}if(cur)L.push(cur);return L;}
+const KB_ROWS=[['→','あ','か','さ','⌫'],['↺','た','な','は','空白'],['ABC','ま','や','ら','改行'],['🌐','゛゜','わ','、。','']];
+function drawPhone(){const c=pc;c.setTransform(PS,0,0,PS,0,0);
+  const BG='#8ea9cf',HD='#7f9bc3';c.fillStyle=BG;c.fillRect(0,0,PW,PH);
+  // ステータスバーとヘッダー
+  c.fillStyle=HD;c.fillRect(0,0,PW,82);c.fillStyle='#fff';c.font=`700 14px ${FONT}`;c.textAlign='left';const now=new Date();c.fillText(`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,20,21);
+  c.strokeStyle='#fff';c.lineWidth=1.4;c.strokeRect(312,11,24,11);c.fillRect(314,13,15,7);
+  c.font=`400 26px ${FONT}`;c.fillText('‹',12,62);c.font=`700 18px ${FONT}`;c.fillText('ゆうた',40,61);
+  c.lineWidth=2;c.beginPath();c.arc(262,54,7,0,7);c.moveTo(267,59);c.lineTo(272,64);c.stroke();
+  c.beginPath();c.moveTo(292,48);c.quadraticCurveTo(290,60,302,64);c.stroke();for(let k=0;k<3;k++){c.fillRect(322,47+k*7,16,2);}
+  // メッセージ（新しいものが下）
+  const kb=!!(chat.cur&&gazing&&chat.typed>0),kbH=kb?236:0,inH=50,bottom=PH-inH-kbH;
+  c.save();c.beginPath();c.rect(0,82,PW,bottom-82);c.clip();c.font=`400 15px ${FONT}`;let y=bottom-10;
+  for(let k=chat.history.length-1;k>=0;k--){const m=chat.history[k];
+    if(m.sys){y-=30;if(y<82)break;c.font=`400 11px ${FONT}`;const tw=c.measureText(m.text).width+20;c.fillStyle='rgba(60,80,110,.35)';rr2(c,PW/2-tw/2,y+4,tw,20,10);c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(m.text,PW/2,y+18);c.font=`400 15px ${FONT}`;continue;}
+    const lines=wrapT(c,m.text,200),h=lines.length*21+14,w=Math.max(...lines.map(l=>c.measureText(l).width))+24;y-=h+12;if(y+h<82)break;
+    c.textAlign='left';
+    if(m.out){const x=PW-12-w;c.fillStyle='#85e249';rr2(c,x,y,w,h,16);c.fill();c.beginPath();c.moveTo(x+w-6,y+8);c.lineTo(x+w+6,y+4);c.lineTo(x+w-2,y+18);c.fill();
+      c.fillStyle='#111';lines.forEach((l,q)=>c.fillText(l,x+12,y+22+q*21));c.fillStyle='#eef3fa';c.font=`400 10px ${FONT}`;c.textAlign='right';c.fillText('既読',x-5,y+h-16);c.fillText(m.tm,x-5,y+h-3);c.font=`400 15px ${FONT}`;}
+    else{const x=54;c.fillStyle='#f2c94c';c.beginPath();c.arc(28,y+16,17,0,7);c.fill();c.fillStyle='#6b4f12';c.font=`700 15px ${FONT}`;c.textAlign='center';c.fillText('ゆ',28,y+21);c.font=`400 15px ${FONT}`;c.textAlign='left';
+      c.fillStyle='#fff';rr2(c,x,y,w,h,16);c.fill();c.beginPath();c.moveTo(x+6,y+8);c.lineTo(x-6,y+4);c.lineTo(x+2,y+18);c.fill();
+      c.fillStyle='#111';lines.forEach((l,q)=>c.fillText(l,x+12,y+22+q*21));c.fillStyle='#eef3fa';c.font=`400 10px ${FONT}`;c.fillText(m.tm,x+w+5,y+h-3);c.font=`400 15px ${FONT}`;}}
+  c.restore();
+  // 入力欄（スマホを見ている間だけ文字が入る）
+  const iy=PH-kbH-inH;c.fillStyle='#fff';c.fillRect(0,iy,PW,inH);c.strokeStyle='#8a8f96';c.lineWidth=2;c.beginPath();c.moveTo(14,iy+25);c.lineTo(30,iy+25);c.moveTo(22,iy+17);c.lineTo(22,iy+33);c.stroke();
+  c.fillStyle='#f0f1f3';rr2(c,44,iy+9,PW-104,32,16);c.fill();c.font=`400 15px ${FONT}`;c.textAlign='left';
+  if(chat.cur&&chat.typed>0){c.fillStyle='#111';c.fillText(chat.cur.reply.slice(0,Math.floor(chat.typed))+((T*2|0)%2&&gazing?'|':''),56,iy+31);}else{c.fillStyle='#9aa0a6';c.fillText('Aa',56,iy+31);}
+  if(chat.cur&&chat.typed>0&&!gazing){c.fillStyle='#e0383e';c.font=`700 11px ${FONT}`;c.textAlign='right';c.fillText('入力停止中',PW-64,iy+30);}
+  c.fillStyle=chat.cur&&chat.typed>0?'#06c755':'#c4c8cc';c.beginPath();c.arc(PW-30,iy+25,15,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(PW-36,iy+19);c.lineTo(PW-21,iy+25);c.lineTo(PW-36,iy+31);c.closePath();c.fill();
+  // フリック入力キーボード（入力中に表示）
+  if(kb){const ky=PH-kbH;c.fillStyle='#d1d4d9';c.fillRect(0,ky,PW,kbH);c.textAlign='center';
+    KB_ROWS.forEach((row,r)=>row.forEach((k,q)=>{if(!k)return;const kw=(PW-24)/5,x=6+q*(kw+3),yy=ky+8+r*56;c.fillStyle=q===0||q===4?'#aeb3ba':'#fff';rr2(c,x,yy,kw,50,6);c.fill();
+      c.fillStyle='#222';c.font=`${k.length>2?400:500} ${k.length>2?13:20}px ${FONT}`;c.fillText(k,x+kw/2,yy+32);}));}
+  // 他のアプリ・他の人からの通知バナー
+  if(banner&&T<banner.until){const by=8;c.fillStyle='rgba(245,246,248,.97)';rr2(c,8,by,PW-16,70,16);c.fill();c.fillStyle='#06c755';rr2(c,20,by+14,40,40,10);c.fill();
+    c.fillStyle='#fff';c.font=`900 11px ${FONT}`;c.textAlign='center';c.fillText('LINE',40,by+38);c.textAlign='left';c.fillStyle='#111';c.font=`700 14px ${FONT}`;c.fillText(banner.from,72,by+30);
+    c.font=`400 13px ${FONT}`;c.fillStyle='#333';c.fillText(banner.text.length>20?banner.text.slice(0,20)+'…':banner.text,72,by+52);c.fillStyle='#888';c.font=`400 11px ${FONT}`;c.textAlign='right';c.fillText('今',PW-22,by+28);}
+  phoneTex.needsUpdate=true;}
+function drawComp(nav){const c=cc;c.fillStyle='#b7c59f';c.fillRect(0,0,240,150);c.fillStyle='#1d2416';
+  if(mode==='normal'&&nav){turnArrow(c,46,62,76,nav.turn,'#1d2416');c.font='600 50px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText(String(Math.max(0,Math.round(nav.dist/5)*5)),94,78);c.font=`700 20px ${FONT}`;c.fillText(nav.turn==='goal'?'m 目的地':`m 先 ${TURNJ[nav.turn]}`,96,104);
+    c.font=`700 22px ${FONT}`;c.fillText(`${(v*3.6).toFixed(0)} km/h`,14,138);}
+  else{c.font='600 76px "IBM Plex Mono",monospace';c.textAlign='right';c.fillText((v*3.6).toFixed(0),172,96);c.font='600 22px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText('km/h',178,96);c.font=`700 20px ${FONT}`;c.fillText(`${Math.floor(stats.time/60)}:${String(Math.floor(stats.time%60)).padStart(2,'0')}`,14,136);}
+  compTex.needsUpdate=true;}
+
+/* ================= chat & LINE directions (ながらスマホ) ================= */
+// ゆうた（大学で待っている友達）がLINEで道順を送ってくる。合間に雑談も来て、スマホを見ている間だけ返信が打ち込まれる
+const CHAT=[
+  {text:'今どこらへん？',reply:'チャリで向かってる',nudge:'おーい'},
+  {text:'道わかる？笑',reply:'案内たのむ',nudge:'見てる？'},
+  {text:'昼メシ学食でいい？',reply:'いいよ',nudge:'既読無視？笑'},
+  {text:'レポートもう出した？',reply:'まだ、今夜やる',nudge:'おーい'},
+  {text:'先輩もう来てるって',reply:'りょ、急ぐ',nudge:'急げー'},
+  {text:'飲み物買っとこうか？',reply:'お茶でお願い',nudge:'いらない？'},
+  {text:'ゼミ13時からだよね？',reply:'そう、13時から',nudge:'？'},
+  {text:'スライド何枚になった？',reply:'15枚くらい',nudge:'おーい'},
+  {text:'着いたら連絡して',reply:'了解',nudge:'まだ？'},
+];
+const BANNERS=[['母','帰りに牛乳買ってきて'],['先輩','明日のゼミ資料できてる？'],['バイト先','今日のシフト代われる？'],['LINEニュース','【速報】首都圏で強風 交通機関に影響'],['公式アカウント','本日限定！クーポン配信中'],['ゼミ グループ','先生：明日は13時からです'],['母','2本でいいよ。あと卵も'],['先輩','スライド何枚くらいになりそう？'],['バイト先','ありがとう！店長に伝えておくね']];
+const CHAT_LIMIT=26,TYPE_CPS=5;
+let chat={history:[],cur:null,typed:0,idx:0,nextAt:0,ping:0},banner=null,bannerNext=0,navSent={},navTrig={};
+const tmNow=()=>{const d=new Date();return`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
+const pickR=a=>a[(rr()*a.length)|0];
+function resetChat(){chat={history:[{sys:true,text:'今日'}],cur:null,typed:0,idx:0,nextAt:9,ping:0};banner=null;bannerNext=12+rr()*6;navSent={};navTrig={};
+  pushYuta('正門で待ってるね！道はLINEで教える',false);}
+function pushYuta(text,nav=true){chat.history.push({from:'ゆうた',text,tm:tmNow(),nav});if(mode==='phone'){sNotify();haptic('left',.6,120);if(nav)stats.navMsgs++;}}
+function chatTick(dt){if(mode!=='phone')return;
+  if(T>=bannerNext){const[f,t]=BANNERS[(rr()*BANNERS.length)|0];banner={from:f,text:t,until:T+3.6};bannerNext=T+9+rr()*9;sNotify();haptic('left',.4,80);}
+  if(!chat.cur&&T>=chat.nextAt){const m=CHAT[chat.idx++%CHAT.length];chat.cur={...m,t0:T,nudged:false};chat.typed=0;chat.ping=T;pushYuta(m.text,false);stats.received++;}
+  const c=chat.cur;if(!c)return;
+  if(gazing){chat.typed+=dt*TYPE_CPS;stats.typeTime+=dt;
+    if(chat.typed>=c.reply.length){chat.history.push({out:true,text:c.reply,tm:tmNow()});stats.replies++;stats.replyTimeSum+=T-c.t0;sSent();chat.cur=null;chat.nextAt=T+5+rr()*5;}}
+  else if(T-chat.ping>4){chat.ping=T;sNotify();haptic('left',.5,100);}
+  if(chat.cur&&!c.nudged&&T-c.t0>11){c.nudged=true;stats.nudged++;pushYuta(c.nudge,false);}
+  if(chat.cur&&T-c.t0>CHAT_LIMIT){stats.unanswered++;chat.cur=null;chat.nextAt=T+3;}
+  if(chat.history.length>40)chat.history.splice(0,chat.history.length-40);}
+// これから曲がる交差点を最大2つ返す（straight=手前で直進する交差点の数）
+function upcoming(L){if(!route.length)return[];let dist,inDir;
+  if(L.edge&&same(L.B,route[0])){dist=S-L.s;inDir=L.d;}else{const n=route[0];dist=Math.hypot(bx-n[0]*S,bz+n[1]*S);inDir=L.edge?L.d:quantDir();}
+  const out=[];let acc=dist,st=0;
+  for(let k=0;k<route.length;k++){if(k===route.length-1){out.push({node:route[k],turn:'goal',dist:acc,key:'g',straight:st});break;}
+    const o=dirBetween(route[k],route[k+1]);
+    if(o!==inDir){out.push({node:route[k],turn:o===(inDir+1)%4?'right':o===(inDir+3)%4?'left':'uturn',dist:acc,key:route[k].join(',')+'>'+o,straight:st});st=0;if(out.length>=2)break;}else st++;
+    inDir=o;acc+=S;}
+  return out;}
+function landmarkAt(n){const L=LANDMARKS.find(L=>Math.abs(L.x-n[0]*S)<RW+6&&Math.abs(L.z+n[1]*S)<RW+6);return L?L.name:null;}
+function lineNav(L){const U=upcoming(L);if(!U.length)return;const a=U[0];if(navSent[a.key])return;
+  const trig=navTrig[a.key]??=(26+rr()*26)+a.straight*S;if(a.dist>trig)return;navSent[a.key]=1;let txt;
+  if(a.turn==='goal')txt=pickR(['そのまま行けば正門！','正門もうすぐだよ〜','正門の前にいる！見える？']);
+  else if(a.turn==='uturn')txt='逆！Uターンして戻って';
+  else{const t=TURNJ[a.turn],lm=landmarkAt(a.node);
+    if(a.straight>=1)txt=`${a.straight+1}つ目の信号を${t}`;
+    else if(lm&&rr()<.7)txt=pickR([`${lm}の角を${t}ね`,`${lm}があるとこ${t}`,`${lm}見えたら${t}`]);
+    else txt=pickR([`次の信号を${t}！`,`次${t}ね`,`そこの交差点${t}`,`次の角${t}`]);
+    const b=U[1];if(b&&b.turn!=='goal'&&b.turn!=='uturn'&&b.straight===0&&rr()<.45){txt+=`、そのあとすぐ${TURNJ[b.turn]}`;navSent[b.key]=1;}}
+  pushYuta(txt,true);}
+const sNotify=()=>{tone(1318,.1,'sine',.12);tone(1760,.16,'sine',.12,.1);};
+const sSent=()=>tone(990,.08,'sine',.07);
+
+/* ================= police（ながらスマホの取り締まり） ================= */
+// 警察官は歩道に立ち、POL_R m 以内を通る自転車を見ている。その範囲内でスマホ注視が通算 POL_SEC 秒に達すると笛を吹いて注意し、止められる。
+const POL_R=18,POL_SEC=3,POL_STOP=2.5;
+function makePolice(){const h=1.72,o=makePerson(0x1f2f5c,h,0x18233f,0x14161c);
+  o.g.add(new THREE.Mesh(mergeGeometries([colorize(new THREE.CylinderGeometry(.14,.128,.085,12).translate(0,h*.925,0),0x18233f),colorize(new THREE.BoxGeometry(.22,.02,.13).translate(0,h*.9,.15),0x101522),
+    colorize(new THREE.BoxGeometry(.055,.05,.012).translate(0,h*.93,.136),0xe2c14a),colorize(new THREE.BoxGeometry(.43,h*.2,.25).translate(0,h*.46+h*.19,0),0xe6ee4f),
+    colorize(new THREE.BoxGeometry(.44,.035,.26).translate(0,h*.46+h*.15,0),0xc9ced4),colorize(new THREE.BoxGeometry(.44,.035,.26).translate(0,h*.46+h*.23,0),0xc9ced4)]),vcMat));return o;}
+const police=[];for(let k=0;k<6;k++)police.push(makePolice());
+const polCv=document.createElement('canvas');polCv.width=512;polCv.height=160;
+{const c=polCv.getContext('2d');c.fillStyle='#fff';c.strokeStyle='#d8322a';c.lineWidth=12;c.beginPath();c.roundRect(8,8,496,144,30);c.fill();c.stroke();
+  c.fillStyle='#d8322a';c.font='700 50px '+FONT;c.textAlign='center';c.textBaseline='middle';c.fillText('ながらスマホ 注意！',256,84);}
+const polTex=new THREE.CanvasTexture(polCv);polTex.colorSpace=THREE.SRGBColorSpace;
+const polBubble=new THREE.Sprite(new THREE.SpriteMaterial({map:polTex,fog:false}));polBubble.scale.set(2.6,.81,1);polBubble.visible=false;scene.add(polBubble);
+let polBubT=0,polStopT=0;
+function sWhistle(){for(let k=0;k<7;k++)tone(k%2?2950:2700,.09,'square',.05,k*.07);tone(2800,.5,'square',.05,.5);}
+function speak(t){try{if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=1.1;const vj=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('ja'));if(vj)u.voice=vj;speechSynthesis.speak(u);}catch(e){}}
+function setupPolice(){const spots=[];const has=(A,d)=>spots.some(q=>same(q[0],A)&&q[1]===d);
+  // ルート上に3人（両モードで必ず前を通る）＋それ以外の道に3人
+  for(const k of[1,4,7])if(PLAN[k+1])spots.push([PLAN[k].slice(),dirBetween(PLAN[k],PLAN[k+1]),S*.5]);
+  for(let n=0;n<30&&spots.length<police.length;n++){const[A,d0]=edges[(rr()*edges.length)|0];const d=rr()<.5?d0:(d0+2)%4;const A2=d===d0?A:[A[0]+DI[d0],A[1]+DJ[d0]];const s=RW+10+rr()*(S-2*RW-20);
+    if((same(A2,[0,0])&&d===0)||has(A2,d))continue;spots.push([A2,d,s]);}
+  police.forEach((o,k)=>{const q=spots[k];o.on=!!q;o.g.visible=!!q;if(!q)return;const[x,z]=ePt(q[0],q[1],q[2],RW+2);const[lx,lz]=leftOf(q[1]);
+    Object.assign(o,{fx:-lx,fz:-lz,inR:false,watch:0,warned:false});placeP(o,x,z,o.fx,o.fz,0,0);});
+  polBubble.visible=false;polBubT=0;polStopT=0;}
+function updatePolice(dt){
+  for(const o of police){if(!o.on)continue;const inR=Math.hypot(bx-o.x,bz-o.z)<POL_R;
+    if(inR&&!o.inR){stats.policePass++;o.watch=0;o.warned=false;}
+    if(!inR&&o.inR)o.g.rotation.y=Math.atan2(o.fx,o.fz);
+    o.inR=inR;if(!inR)continue;
+    o.g.rotation.y=Math.atan2(bx-o.x,bz-o.z); // 自転車を目で追う
+    if(gazing){stats.policeGaze+=dt;o.watch+=dt;
+      if(!o.warned&&o.watch>=POL_SEC){o.warned=true;stats.policeWarn++;sWhistle();showAlert('警察官に注意された！');haptic('right',1,300);haptic('left',1,300);
+        polBubble.position.set(o.x,2.5,o.z);polBubble.visible=true;polBubT=T+4;polStopT=T+POL_STOP;speak('そこの自転車、止まりなさい。ながらスマホは危険です');}}}
+  if(T<polStopT)v=Math.max(0,v-7*dt); // 止められる
+  if(polBubble.visible&&T>polBubT)polBubble.visible=false;}
+
+/* ================= run lifecycle ================= */
+function startRun(m){audio();mode=m;state='play';T=0;rr=rng32(777);
+  yaw=0;v=0;wob=0;steerIn=0;cool=0;flash=0;prevGaze=false;gazing=false;started=false;lookYaw=0;lookPitch=0;gz=0;camera.fov=72;camera.updateProjectionMatrix();
+  [bx,bz]=ePt([0,0],0,22,BL);
+  stats={time:0,dist:0,gazeTime:0,gazeDist:0,glances:0,longest:0,longestDist:0,cur:0,curDist:0,colPed:0,colCar:0,colObj:0,nearMiss:0,redRuns:0,wrong:0,received:0,replies:0,replyTimeSum:0,typeTime:0,nudged:0,unanswered:0,navMsgs:0,policePass:0,policeWarn:0,policeGaze:0};resetChat();
+  hazards=[];route=PLAN.map(n=>n.slice());curB=[0,1];lastL=null;navSaid={};distSinceDart=0;nextDartDist=70;crossDone={};prevLt={};
+  for(const p of people)freePerson(p);crossers=[];dart=null;
+  for(const m of carPool)m.visible=false;
+  // parked cars in bike lanes
+  parked=[];let pk=0;for(let n=0;n<11;n++){const[A,d0]=edges[(rr()*edges.length)|0];const d=rr()<.5?d0:(d0+2)%4;const A2=d===d0?A:[A[0]+DI[d0],A[1]+DJ[d0]];const s=RW+14+rr()*(S-2*RW-28);
+    if(same(A2,[0,0])&&d===0&&s<50)continue;const m=carPool[pk++];const[x,z]=ePt(A2,d,s,3.55);m.visible=true;m.position.set(x,0,z);m.rotation.y=Math.atan2(-DX[d],-DZ[d]);parked.push({mesh:m,x,z,hx:DX[d]?2.1:.85,hz:DX[d]?.85:2.1});}
+  cars=[];for(let n=0;n<28;n++){const m=carPool[pk++];m.visible=true;const c={mesh:m};cars.push(c);if(!spawnCar(c,n%3!==0))spawnCar(c,false);}dirT=0;
+  {const c=cars[0];Object.assign(c,{i:0,j:0,d:0,s:RW+1,v:7,turn:null,nd:0,stopUntil:0,nearT:0,cruise:9});} // 後ろから追い越してくる車
+  walkers=[];for(let n=0;n<16;n++){const p=takePerson();const[A,d]=edges[(rr()*edges.length)|0];walkers.push({p,A,d,s:RW+3+rr()*(S-2*RW-6),side:rr()<.5?1:-1,dir:rr()<.5?1:-1,sp:1+rr()*.4});}
+  setupPolice();
+  phone.visible=m==='phone';vrPanel.visible=false;
+  $('#menu').hidden=true;$('#results').hidden=true;
+  ui.hud.hidden=xr;ui.chip.textContent=m==='phone'?'ながらスマホ':'ハンドルナビ';ui.chip.className='chip'+(m==='phone'?' phone':'');
+  ui.gazeBox.hidden=m!=='phone';ui.navMeter.hidden=m==='phone';ui.remainRow.hidden=m==='phone';
+  ui.touch.hidden=!(coarse&&!xr);
+  ui.hint.hidden=xr;ui.hint.style.opacity=1;ui.hint.textContent=m==='phone'?(coarse?'ドラッグで視点。下を向くとスマホのLINE ／「こぐ」で出発':'クリックでマウス視点 ／ 左下のスマホに目線を落とすとLINEが読めて返信が進む ／ W でこぐ'):(coarse?'「こぐ」で出発（ドラッグで視点）':'W / ↑ でこぎ出す ／ クリックでマウス視点');
+  attachPhone();updateLamps();placeRig(0,{steer:0});
+  say('ルート案内を開始します。大学正門へ向かいます');}
+function attachPhone(){if(xr){const lg=grips.find(g=>g.userData.hand==='left');if(lg){lg.add(phone);phone.position.set(0,.015,-.03);phone.rotation.set(-1.15,0,0);return;}}
+  rig.add(phone);phone.position.copy(P_HOLD.p);phone.rotation.copy(P_HOLD.r);}
+function finishGlance(){if(prevGaze&&stats.cur>stats.longest){stats.longest=stats.cur;stats.longestDist=stats.curDist;}prevGaze=false;}
+const HTYPES=['飛び出し','信号の変化'];
+function endRun(){finishGlance();state='result';gz=0;camera.fov=72;camera.updateProjectionMatrix();say('目的地に到着しました');
+  const re=hazards.filter(h=>h.reaction!==null).map(h=>h.reaction);
+  const byType={};for(const t of HTYPES){const hs=hazards.filter(h=>h.type===t);const rs=hs.filter(h=>h.reaction!==null).map(h=>h.reaction);
+    byType[t]={n:hs.length,reacted:rs.length,avg:rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null,hit:hs.filter(h=>h.hit).length,gazed:hs.filter(h=>h.gazed).length};}
+  results[mode]={...stats,avg:stats.dist/Math.max(stats.time,.01)*3.6,gazeRatio:stats.gazeTime/Math.max(stats.time,.01),avgReact:re.length?re.reduce((a,b)=>a+b,0)/re.length:null,
+    hazTotal:hazards.length,missed:hazards.filter(h=>h.reaction===null).length,byType};
+  ui.hud.hidden=true;ui.touch.hidden=true;ui.hint.hidden=true;unlock();
+  if(xr){drawVRPanel();vrPanel.visible=true;}else showResults();}
+function toMenu(){state='menu';unlock();gz=0;camera.fov=72;camera.updateProjectionMatrix();ui.hud.hidden=true;ui.touch.hidden=true;ui.hint.hidden=true;phone.visible=false;vrPanel.visible=false;$('#results').hidden=true;$('#menu').hidden=false;try{speechSynthesis.cancel();}catch(e){}}
+
+/* ================= main update ================= */
+const tA=new THREE.Vector3(),tB=new THREE.Vector3(),tF=new THREE.Vector3();
+// 視線（カメラ正面）とスマホ方向のなす角で注視を判定（PC・VR共通）
+function lookingAtPhone(){const cam=xr?renderer.xr.getCamera():camera;cam.getWorldPosition(tA);phone.getWorldPosition(tB);tB.sub(tA).normalize();cam.getWorldDirection(tF);return tF.dot(tB)>Math.cos(.3);}
+function crash(kind,h){stats[kind]++;if(h)h.hit=true;cool=1.6;flash=1;shake=1;sCrash();showAlert('衝突！');haptic('right',1,200);haptic('left',1,200);v=0;
+  for(const hz of hazards)if(hz.reaction===null&&T-hz.onset<4.5&&!hz.hit&&kind==='colPed'&&hz.type==='飛び出し')hz.hit=true;}
+function update(dt,inp){T+=dt;
+  gazing=mode==='phone'&&phone.visible&&lookingAtPhone();
+  if(inp.acc>0)v+=2.5*inp.acc*dt*Math.max(0,1-v/7.6);v-=(.16+.01*v*v)*dt;if(inp.brake>0)v-=6.5*inp.brake*dt;v=Math.max(0,v);
+  const gain=mode==='phone'?.8:1;const rate=v>.3?Math.min(1.05,.35+v*.16):.3;
+  yaw-=inp.steer*rate*gain*dt;
+  if(Math.abs(inp.steer)<.05&&v>1){const a=Math.round(yaw/(Math.PI/2))*(Math.PI/2);if(Math.abs(yaw-a)<.3)yaw+=(a-yaw)*Math.min(1,dt*1.4);}
+  if(gazing&&v>.5){wob+=(Math.random()-.5)*dt*4;wob*=Math.exp(-.7*dt);yaw+=wob*.4*dt;}else wob*=Math.exp(-2*dt);
+  const px=bx,pz=bz;bx+=-Math.sin(yaw)*v*dt;bz+=-Math.cos(yaw)*v*dt;
+  // keep on roads
+  const m=.35;bx=clamp(bx,-RW+m,(NX-1)*S+RW-m);bz=clamp(bz,-(NZ-1)*S-RW+m,RW-m);
+  {const dx=bx-Math.round(bx/S)*S,dz=bz-Math.round(bz/S)*S;if(Math.abs(dx)>RW-m&&Math.abs(dz)>RW-m){const ox=Math.abs(dx)-(RW-m),oz=Math.abs(dz)-(RW-m);if(ox<oz)bx-=Math.sign(dx)*ox;else bz-=Math.sign(dz)*oz;
+    curbCool-=dt;if(v>2.6&&curbCool<=0){stats.colObj++;curbCool=1.5;showAlert('縁石に接触','info');}v*=Math.exp(-3*dt);shake=Math.max(shake,.3);}}
+  if(!started&&v>.6){started=true;ui.hint.style.opacity=0;}
+  const L=locate(bx,bz);
+  // signals: red-light running & yellow onset hazard
+  if(lastL&&lastL.edge&&L.node&&same(lastL.B,[L.i,L.j])){if(light(L.i,L.j,axisOf(lastL.d))==='R'){stats.redRuns++;showAlert('信号無視');haptic('right',.8,150);}}
+  if(L.edge&&inGrid(L.B[0],L.B[1])){const key=L.B.join(',')+axisOf(L.d);const lt=light(L.B[0],L.B[1],axisOf(L.d));const dStop=S-L.s-RW-4.4;
+    if(prevLt[key]==='G'&&lt==='Y'&&dStop>4&&dStop<48&&v>2)hazard('信号の変化',true);prevLt[key]=lt;
+    if(!curB||!same(curB,L.B)){const old=curB;curB=L.B.slice();if(old)onNext(L.A,L.B,L.d);}}
+  lastL=L;
+  director(dt,L);updateCars(dt);updatePeds(dt,L);updatePolice(dt);updateLamps();
+  // collisions
+  cool-=dt;if(cool<=0){
+    for(const c of cars){const rx=bx-c.x,rz=bz-c.z;const lz=rx*c.hx+rz*c.hz,lx=rx*c.hz-rz*c.hx;
+      if(Math.abs(lx)<1.2&&Math.abs(lz)<2.45&&(c.v>1.5||v>1.5)){crash('colCar');c.v=0;c.stopUntil=T+2.5;const sg=Math.sign(lx)||1;bx+=c.hz*sg*.7;bz-=c.hx*sg*.7;break;}
+      if(c.v>4&&Math.abs(lx)<1.55&&Math.abs(lz)<2.4&&c.nearT<T){c.nearT=T+4;stats.nearMiss++;sHorn();showAlert('ヒヤリ！','info');haptic('right',.5,100);}}
+  }
+  {const peds=crossers.filter(p=>p.active&&p.wait<=0);if(dart&&dart.state==='run')peds.push(dart.p);
+    for(const p of peds)if(Math.hypot(bx-p.x,bz-p.z)<.65){if(v>1&&cool<=0){crash('colPed',dart&&p===dart.p?dart.h:null);p.stop=T+1.5;}bx=px;bz=pz;v=0;break;}
+    for(const q of parked){const dx=Math.max(Math.abs(bx-q.x)-q.hx,0),dz=Math.max(Math.abs(bz-q.z)-q.hz,0);if(Math.hypot(dx,dz)<.35){if(v>1.5&&cool<=0)crash('colObj');bx=px;bz=pz;v=0;break;}}}
+  // reactions
+  const bE=inp.brake>.35&&prevBrake<=.35,sE=Math.abs(inp.steer)>.5&&Math.abs(prevSteer)<=.5;prevBrake=inp.brake;prevSteer=inp.steer;
+  for(const h of hazards){if(h.reaction!==null||T-h.onset>4.5)continue;if(bE||(!h.brakeOnly&&sE))h.reaction=T-h.onset;}
+  // nav
+  const nav=navInfo(L);navCur=nav;
+  if(nav&&mode==='normal'){const st=navSaid[nav.key]||0;const tj=TURNJ[nav.turn];
+    if(nav.turn==='goal'){if(nav.dist<45&&st<1){navSaid[nav.key]=1;say('まもなく目的地です');}}
+    else if(nav.dist<20&&st<2){navSaid[nav.key]=2;say(`まもなく、${tj}方向です`);}
+    else if(nav.dist<62&&nav.dist>25&&st<1){navSaid[nav.key]=1;say(`およそ${Math.round(nav.dist/10)*10}メートル先、${tj}方向です`);}}
+  // stats
+  stats.time+=dt;stats.dist+=v*dt;distSinceDart+=v*dt;
+  if(gazing&&!prevGaze){stats.glances++;stats.cur=0;stats.curDist=0;}
+  if(gazing){stats.gazeTime+=dt;stats.gazeDist+=v*dt;stats.cur+=dt;stats.curDist+=v*dt;}
+  if(!gazing&&prevGaze)finishGlance();prevGaze=gazing;
+  if(Math.hypot(bx-GOAL[0]*S,bz+GOAL[1]*S)<7){endRun();return;}
+  placeRig(dt,inp);
+  if(mode==='phone')lineNav(L);chatTick(dt);phoneT-=dt;if(mode==='phone'&&phoneT<=0){drawPhone();phoneT=.1;}
+  compT-=dt;if(compT<=0){drawComp(nav);compT=.15;}
+  hudT-=dt;if(hudT<=0&&!xr){hudT=.08;ui.spd.textContent=(v*3.6).toFixed(0);
+    if(mode==='normal'&&nav){ui.remain.textContent=Math.round(nav.total);ui.navTurn.textContent=nav.turn==='goal'?'目的地':`${TURNJ[nav.turn]}方向`;ui.navDist.textContent=`${Math.max(0,Math.round(nav.dist/5)*5)} m 先`;
+      const a=ui.navArrow.getContext('2d');a.clearRect(0,0,92,92);turnArrow(a,46,50,74,nav.turn,'#ffc61a');}
+    if(mode==='phone'){ui.gazeT.textContent=stats.gazeTime.toFixed(1);ui.gazeD.textContent=stats.gazeDist.toFixed(0);ui.gazeLive.hidden=!gazing;}}}
+function placeRig(dt,inp){if(xr&&calibT>=0&&T-calibT>.4){rigY=EYE-camera.position.y;calibT=-1;}
+  rig.position.set(bx,xr?rigY:0,bz);rig.rotation.y=yaw;bars.rotation.y=-inp.steer*.32+wob*.05;
+  flash=Math.max(0,flash-dt*1.8);flashMesh.material.opacity=flash*.55;shake=Math.max(0,shake-dt*2.5);
+  if(!xr){const bob=Math.sin(stats.dist*1.9)*.012*Math.min(1,v/3);
+    camera.position.set((Math.random()-.5)*shake*.06,EYE+bob+(Math.random()-.5)*shake*.06,0);
+    // PC：スマホに目線を落とすと、スマホに視点が吸い寄せられてズームする（周りが見えなくなる）
+    gz+=((mode==='phone'&&gazing?1:0)-gz)*Math.min(1,dt*6);
+    if(mode==='phone'&&gazing){const dx=P_HOLD.p.x,dy=P_HOLD.p.y-EYE,dz=P_HOLD.p.z,l=Math.hypot(dx,dy,dz);
+      lookYaw+=(Math.atan2(-dx,-dz)-lookYaw)*Math.min(1,dt*4);lookPitch+=(Math.asin(dy/l)+.12-lookPitch)*Math.min(1,dt*4);}
+    const fov=lerp(72,26,gz);if(Math.abs(camera.fov-fov)>.05){camera.fov=fov;camera.updateProjectionMatrix();}
+    camera.rotation.set(-.12+lookPitch,lookYaw,-inp.steer*.04-wob*.02);
+    if(phone.parent===rig){const sw=Math.sin(stats.dist*1.9)*.004*Math.min(1,v/3);phone.position.set(P_HOLD.p.x+wob*.01,P_HOLD.p.y+sw,P_HOLD.p.z);phone.rotation.set(P_HOLD.r.x,P_HOLD.r.y,P_HOLD.r.z+wob*.05);}}}
+let idleT=0;
+function idle(dt){idleT+=dt;if(xr)return;if(state==='menu'){T+=dt;updateLamps();rig.position.set(-3,0,-30);rig.rotation.y=-.35+Math.sin(idleT*.1)*.25;camera.position.set(0,EYE+.4,0);camera.rotation.set(-.05,0,0);}}
+
+/* ================= XR ================= */
+const grips=[0,1].map(i=>{const g=renderer.xr.getControllerGrip(i);rig.add(g);
+  g.addEventListener('connected',e=>{g.userData.hand=e.data.handedness;if(xr&&state==='play')attachPhone();});g.addEventListener('disconnected',()=>{g.userData.hand=null;});
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(.06,.03,.1),mat(0x2a2d33)));return g;});
+(async()=>{const st=$('#vrStatus'),b=$('#startVR');let ok=false;try{ok=!!(navigator.xr&&await navigator.xr.isSessionSupported('immersive-vr'));}catch(e){}
+  b.disabled=!ok;st.textContent=ok?'VRヘッドセットを検出しました。座ったままでも遊べます（右Bで目線の高さを合わせ直し）。'
+    :'この画面ではVRを起動できません（埋め込み表示ではWebXRが許可されないことがあります）。VRで遊ぶには、このHTMLファイルをHTTPSで配信し、Meta Quest のブラウザで開いてください。画面モードはそのまま遊べます。';})();
+$('#startVR').addEventListener('click',async()=>{audio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});
+    await renderer.xr.setSession(s);xr=true;s.addEventListener('end',()=>{xr=false;rigY=0;camera.position.set(0,EYE,0);renderer.setSize(innerWidth,innerHeight,false);if(state==='result')showResults();else toMenu();});
+    startRun(selMode());calibT=T;}catch(e){$('#vrStatus').textContent='VRセッションを開始できませんでした：'+(e&&e.message||e);}});
+function drawVRPanel(){const c=vc,r=results[mode];c.fillStyle='#1b5cbd';c.fillRect(0,0,1024,760);c.strokeStyle='#fff';c.lineWidth=10;c.strokeRect(14,14,996,732);
+  c.fillStyle='#fff';c.font=`700 54px ${FONT}`;c.textAlign='left';c.fillText(`到着！（${mode==='phone'?'ながらスマホ':'ハンドルナビ'}）`,56,100);
+  const rows=[['タイム',`${r.time.toFixed(1)} 秒`],['道を間違えた',`${r.wrong} 回`],['衝突（人・車・物）',`${r.colPed}・${r.colCar}・${r.colObj}`],['ヒヤリハット',`${r.nearMiss} 回`],['信号無視',`${r.redRuns} 回`],['平均反応時間',r.avgReact==null?'—':`${r.avgReact.toFixed(2)} 秒`]];
+  if(mode==='phone')rows.push(['スマホを見ていた',`${r.gazeTime.toFixed(1)} 秒 / ${r.gazeDist.toFixed(0)} m`],['返信 / 放置',`${r.replies} / ${r.unanswered} 件`],['警察官に注意された',`${r.policeWarn} 回（${r.policePass} 人中）`]);
+  c.font=`400 38px ${FONT}`;rows.forEach(([k,v2],i)=>{c.fillText(k,70,172+i*56);c.textAlign='right';c.fillText(v2,960,172+i*56);c.textAlign='left';});
+  c.font=`700 32px ${FONT}`;c.fillStyle='#ffc61a';c.fillText('右A：ながらスマホで走る　右B：ハンドルナビで走る',56,710);vrTex.needsUpdate=true;}
+
+/* ================= results ================= */
+const f0=x=>x==null?'—':x.toFixed(0),f1=x=>x==null?'—':x.toFixed(1),f2=x=>x==null?'—':x.toFixed(2);
+const isP=r=>r===results.phone;
+const ROWS=[
+  ['到着までの時間（秒）',r=>f1(r.time),null],['走行距離（m）',r=>f0(r.dist),null],
+  ['道を間違えた（回）',r=>r.wrong,r=>r.wrong],
+  ['衝突：歩行者（回）',r=>r.colPed,r=>r.colPed],['衝突：車（回）',r=>r.colCar,r=>r.colCar],['縁石・駐車車両に接触（回）',r=>r.colObj,r=>r.colObj],
+  ['ヒヤリハット：車が至近距離を通過（回）',r=>r.nearMiss,r=>r.nearMiss],['信号無視（回）',r=>r.redRuns,r=>r.redRuns],
+  ['危険への平均反応時間（秒）',r=>f2(r.avgReact),r=>r.avgReact],['反応できなかった危険（件）',r=>`${r.missed} / ${r.hazTotal}`,r=>r.hazTotal?r.missed/r.hazTotal:0],
+  ['警察官に注意された（回 / 前を通った人数）',r=>isP(r)?`${r.policeWarn} / ${r.policePass}`:`— / ${r.policePass}`,null],
+  ['警察官の前でスマホを見ていた（秒）',r=>isP(r)?f1(r.policeGaze):'—',null],
+  ['スマホを見ていた合計（秒）',r=>isP(r)?`${f1(r.gazeTime)}（${(r.gazeRatio*100).toFixed(0)}%）`:'—',null],
+  ['前を見ずに進んだ距離（m）',r=>isP(r)?f1(r.gazeDist):'—',null],
+  ['最長の1回の注視（秒 / m）',r=>isP(r)?`${f1(r.longest)} / ${f1(r.longestDist)}`:'—',null],
+  ['スマホを見た回数（回）',r=>isP(r)?r.glances:'—',null],
+  ['LINEで届いた道案内（件）',r=>isP(r)?r.navMsgs:'—',null],
+  ['返信した数 / 届いた数（件）',r=>isP(r)?`${r.replies} / ${r.received}`:'—',null],
+  ['平均返信時間（秒）',r=>isP(r)?(r.replies?f1(r.replyTimeSum/r.replies):'—'):'—',null],
+  ['催促された / 放置した（回）',r=>isP(r)?`${r.nudged} / ${r.unanswered}`:'—',null]];
+const COLS=()=>[['ハンドルナビ',results.normal],['ながらスマホ',results.phone]].filter(x=>x[1]);
+function showResults(){const n=results.normal,p=results.phone,cols=COLS();
+  let html='<thead><tr><th>項目</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
+  for(const[label,fmt,cmp]of ROWS){html+=`<tr><td>${label}</td>`;for(const[,r]of cols){const worse=cmp&&n&&p&&r===p&&cmp(p)!=null&&cmp(n)!=null&&cmp(p)>cmp(n);html+=`<td class="num${worse?' worse':''}">${fmt(r)}</td>`;}html+='</tr>';}
+  $('#resTable').innerHTML=html+'</tbody>';
+  let hh='<thead><tr><th>危険</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
+  for(const t of HTYPES){hh+=`<tr><td>${t}</td>`;for(const[,r]of cols){const b=r.byType[t];hh+=`<td class="num">${b.n?`平均 ${f2(b.avg)} 秒<br><small>反応 ${b.reacted}/${b.n}・注視中 ${b.gazed}・衝突 ${b.hit}</small>`:'発生なし'}</td>`;}hh+='</tr>';}
+  $('#hazTable').innerHTML=hh+'</tbody>';
+  let ins='';
+  if(p)ins+=`地図を見ていた合計 <strong>${f1(p.gazeTime)} 秒</strong>（走行時間の ${(p.gazeRatio*100).toFixed(0)}%）のあいだに、前を見ずに <strong>${f1(p.gazeDist)} m</strong> 進みました。最長の1回は ${f1(p.longest)} 秒で ${f1(p.longestDist)} m です。`;
+  if(p&&p.policePass)ins+=` 警察官 ${p.policePass} 人の前を通り、<strong>${p.policeWarn} 回</strong> 注意されました。`;
+  if(n&&p){if(n.avgReact!=null&&p.avgReact!=null){const d=p.avgReact-n.avgReact;ins+=d>0?` 危険への反応は平均 <strong>${d.toFixed(2)} 秒</strong> 遅れ、時速 ${f1(p.avg)} km ではその間に約 <strong>${(d*p.avg/3.6).toFixed(1)} m</strong> 進みます。`:` 平均反応時間の差は ${d.toFixed(2)} 秒でした。反応できなかった危険の数もあわせて見てください。`;}
+    if(p.replies)ins+=` トークは ${p.replies} 件返信しました。`;ins+=` ヒヤリハットは ${n.nearMiss} 回 → ${p.nearMiss} 回、道の間違いは ${n.wrong} 回 → ${p.wrong} 回でした。`;}
+  if(!p)ins='ハンドルナビのデータが取れました。次は「ながらスマホ」で走ると、反応時間や前を見ずに進んだ距離を比較できます。';else if(!n)ins+=' 「ハンドルナビ」でも走ると、反応時間を並べて比較できます。';
+  $('#insight').innerHTML=ins;$('#copyArea').hidden=true;$('#copyBtn').textContent='結果をコピー';$('#menu').hidden=true;$('#results').hidden=false;}
+function resultText(){const cols=COLS();let t='項目\t'+cols.map(c=>c[0]).join('\t')+'\n';for(const[l,fmt]of ROWS)t+=l+'\t'+cols.map(c=>String(fmt(c[1]))).join('\t')+'\n';
+  t+='\n危険\t'+cols.map(c=>c[0]+' 平均反応(秒)\t反応/発生\t衝突').join('\t')+'\n';for(const ty of HTYPES)t+=ty+'\t'+cols.map(c=>{const b=c[1].byType[ty];return`${f2(b.avg)}\t${b.reacted}/${b.n}\t${b.hit}`;}).join('\t')+'\n';return t;}
+$('#copyBtn').addEventListener('click',()=>{const t=resultText(),b=$('#copyBtn');const fb=()=>{const a=$('#copyArea');a.value=t;a.hidden=false;a.focus();a.select();b.textContent='選択してコピーしてください';};
+  try{navigator.clipboard.writeText(t).then(()=>b.textContent='コピーしました（表計算に貼り付け可）',fb);}catch(e){fb();}});
+document.querySelectorAll('[data-run]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.run)));
+$('#toMenu').addEventListener('click',toMenu);
+const selMode=()=>$('#modePhone').checked?'phone':'normal';
+$('#startScreen').addEventListener('click',()=>startRun(selMode()));
+
+/* ================= loop ================= */
+// 動作確認用：URLに ?debug を付けると、コンソールから dbg.tp(x,z,yaw) で移動、dbg.police / dbg.stats で状態を見られる
+if(location.search.includes('debug'))window.dbg={tp(x,z,y=yaw){bx=x;bz=z;yaw=y;v=0;},get police(){return police.filter(o=>o.on).map(o=>({x:o.x,z:o.z,inR:o.inR,watch:o.watch,warned:o.warned}));},get stats(){return stats;},get pos(){return{bx,bz,yaw,v,gazing};}};
+// menu backdrop traffic
+{rr=rng32(5);let pk=0;cars=[];for(let n=0;n<10;n++){const m=carPool[pk++];m.visible=true;const c={mesh:m};cars.push(c);bx=60;bz=-60;spawnCar(c,false);}}
+updateLamps();drawComp(null);
+const clock=new THREE.Clock();
+renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);const inp=readInput(dt);
+  if(state==='play')update(dt,inp);else{idle(dt);if(state==='menu'){bx=60;bz=-60;updateCars(dt);}}renderer.render(scene,camera);});
+</script>
+
+</html>
