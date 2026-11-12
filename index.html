@@ -102,7 +102,7 @@ h2.sec{margin:0;font-size:.8rem;letter-spacing:.14em;color:var(--muted)}
     <div class="meter">
       <span class="chip" id="modeChip">ハンドルナビ</span>
       <div><span class="big" id="spd">0</span><span class="unit">km/h</span></div>
-      <div class="sub" id="remainRow">残り <span id="remain">5:00</span></div>
+      <div class="sub" id="remainRow"></div>
     </div>
     <div class="meter" id="navMeter"><div id="navBox"><canvas id="navArrow" width="92" height="92"></canvas><div><div id="navTurn">右折</div><div class="sub" id="navDist">0 m 先</div></div></div></div>
   </div>
@@ -127,16 +127,24 @@ h2.sec{margin:0;font-size:.8rem;letter-spacing:.14em;color:var(--muted)}
       <div class="sign">
         <span class="sign-sub">ゼミ発表デモ ／ three.js + WebXR</span>
         <h1>ながらスマホ<br>自転車シミュレータ</h1>
-        <span class="sign-en">DISTRACTED CYCLING SIM · FIND THE DOG</span>
+        <span class="sign-en">DISTRACTED CYCLING SIM</span>
       </div>
       <div class="diamond" aria-hidden="true"><span>スマホ<br>注意</span></div>
     </header>
-    <p class="lead">友達の<b>さくら</b>の家の柴犬<b>「こむぎ」</b>が、散歩中にリードが外れて逃げ出しました。自転車で探しに行き、<b>5分以内</b>に追いついて捕まえてください。こむぎは道を進んで交差点で曲がり、ときどき立ち止まってにおいを嗅ぎ、急に車道へ飛び出すこともあります。自転車で勢いよく近づくと走って逃げるので、<b>ゆっくり近づいて</b>（約2m以内・時速8km以下）捕まえます。<b>ながらスマホ</b>では、グループLINE「こむぎ捜索隊」（さくら・ゆうた・近所の田中さん）に目撃情報が次々に届きます。情報は遅れて届くこともあり、古い情報と新しい情報が混ざるので、読み比べないと今どこにいるか分かりません。スマホには<b>地図アプリが開いたまま</b>になっていて、郵便局・コンビニなどの目印の名前が載っています。目撃情報は「郵便局の近く」のように目印で届くので、地図で場所を探して向かいます。合間に「今どこ？」などの質問も届き、<b>スマホを見ている間だけ返信が打ち込まれます</b>。<b>ハンドルナビ</b>では、同じ目撃情報を音声とハンドルの矢印（方向と距離）で受け取ります。街には<b>警察官</b>が所々に立っていて、その前で3秒以上スマホを見ていると笛を吹かれ、止められます。両方走ると、捕まえるまでの時間・反応時間・ヒヤリハット・「前を見ずに進んだ距離」を比較できます。</p>
+    <p class="lead" id="leadDog">友達の<b>さくら</b>の家の柴犬<b>「こむぎ」</b>が、散歩中にリードが外れて逃げ出しました。自転車で探しに行き、<b>5分以内</b>に追いついて捕まえてください。こむぎは道を進んで交差点で曲がり、ときどき立ち止まってにおいを嗅ぎ、急に車道へ飛び出すこともあります。自転車で勢いよく近づくと走って逃げるので、<b>ゆっくり近づいて</b>（約2m以内・時速8km以下）捕まえます。<b>ながらスマホ</b>では、グループLINE「こむぎ捜索隊」（さくら・ゆうた・近所の田中さん）に目撃情報が次々に届きます。情報は遅れて届くこともあり、古い情報と新しい情報が混ざるので、読み比べないと今どこにいるか分かりません。スマホには<b>地図アプリが開いたまま</b>になっていて、郵便局・コンビニなどの目印の名前が載っています。目撃情報は「郵便局の近く」のように目印で届くので、地図で場所を探して向かいます。合間に「今どこ？」などの質問も届き、<b>スマホを見ている間だけ返信が打ち込まれます</b>。<b>ハンドルナビ</b>では、同じ目撃情報を音声とハンドルの矢印（方向と距離）で受け取ります。街には<b>警察官</b>が所々に立っていて、その前で3秒以上スマホを見ていると笛を吹かれ、止められます。両方走ると、捕まえるまでの時間・反応時間・ヒヤリハット・「前を見ずに進んだ距離」を比較できます。</p>
+    <p class="lead" id="leadRoute" hidden>知らない街を自転車で走り、<b>大学 正門</b>を目指します。道順はナビの案内だけが頼りです。細い碁盤目の街には信号のある交差点が42か所あり、車が行き交い、横断歩道を人が渡り、駐車車両の陰から人が飛び出してきます。<b>ながらスマホ</b>では左手にずっとスマホを持っています。正門で待つ友達の「ゆうた」が、走っている最中にLINEで「次の信号を右」「コンビニの角を左、そのあとすぐ右」のように道順を送ってくるので、読まないと道が分かりません。合間に雑談も届き、<b>スマホを見ている間だけ返信が打ち込まれます</b>。目を離すと入力が止まり、放っておくと催促されます。他の人からの通知も画面にかぶさってきます。街には<b>警察官</b>が所々に立っていて、その前で3秒以上スマホを見ていると笛を吹かれ、止められます。スマホを見ているかどうかは視線の向きで自動的に計測します。<b>ハンドルナビ</b>では音声とハンドルの案内表示で走れます。両方走ると、反応時間・ヒヤリハット・「前を見ずに進んだ距離」を比較できます。</p>
+    <fieldset class="modes">
+      <legend>シナリオ</legend>
+      <div class="opts">
+        <label class="mode"><input type="radio" name="scen" id="scenRoute" value="route"><span><strong>大学へ向かう</strong><small>道順の案内を頼りに、知らない街を大学の正門まで走る</small></span></label>
+        <label class="mode"><input type="radio" name="scen" id="scenDog" value="dog" checked><span><strong>こむぎを探す</strong><small>逃げた柴犬を目撃情報から探し、5分以内に捕まえる</small></span></label>
+      </div>
+    </fieldset>
     <fieldset class="modes">
       <legend>モード</legend>
       <div class="opts">
-        <label class="mode"><input type="radio" name="mode" id="modeNormal" value="normal" checked><span><strong>ハンドルナビ</strong><small>目撃情報を音声で聞き、ハンドルの矢印（方向と距離）で探す。前を見て走る対照条件</small></span></label>
-        <label class="mode"><input type="radio" name="mode" id="modePhone" value="phone"><span><strong>ながらスマホ</strong><small>スマホの地図とグループLINEの目撃情報を見比べて探す。質問にも返信しながら走る</small></span></label>
+        <label class="mode"><input type="radio" name="mode" id="modeNormal" value="normal" checked><span><strong>ハンドルナビ</strong><small id="smallNormal">目撃情報を音声で聞き、ハンドルの矢印（方向と距離）で探す。前を見て走る対照条件</small></span></label>
+        <label class="mode"><input type="radio" name="mode" id="modePhone" value="phone"><span><strong>ながらスマホ</strong><small id="smallPhone">スマホの地図とグループLINEの目撃情報を見比べて探す。質問にも返信しながら走る</small></span></label>
       </div>
     </fieldset>
     <div class="start">
@@ -164,7 +172,7 @@ h2.sec{margin:0;font-size:.8rem;letter-spacing:.14em;color:var(--muted)}
     <div class="tablewrap"><table id="resTable"></table></div>
     <h2 class="sec">危険の種類ごとの反応</h2>
     <div class="tablewrap"><table id="hazTable"></table></div>
-    <p class="note">反応時間は、危険が始まってから最初にブレーキ（飛び出しはハンドル操作も含む）を入れるまでの秒数です。4.5 秒以内に操作がなければ「反応なし」です。ヒヤリハットは、車が自転車の 35 cm 以内を通過した回数です。警察官は歩道に立っていて、その 18 m 以内でスマホを見ていた時間が通算 3 秒に達すると笛を吹いて注意し、約 2.5 秒止められます（1人につき1回の通過で1回まで）。こむぎを見失っていた時間は、こむぎが同じ通りの 70 m 以内（または 12 m 以内）にいなかった時間です。犬の飛び出しは、こむぎが自転車の前方 30 m 以内で道路を横切った場面です。</p>
+    <p class="note" id="resNote"></p>
     <div class="start">
       <button class="btn primary" data-run="phone">ながらスマホで走る</button>
       <button class="btn vr" data-run="normal">ハンドルナビで走る</button>
@@ -194,7 +202,7 @@ scene.add(new THREE.HemisphereLight(0xeef6ff,0x5d5548,1.15));
 const sun=new THREE.DirectionalLight(0xfff1da,1.5);sun.position.set(-30,60,25);scene.add(sun);
 const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,0.03,450);
 const rig=new THREE.Group();scene.add(rig);rig.add(camera);
-const EYE=1.45;camera.position.set(0,EYE,0);
+const EYE=1.45,VR_EYE=1.6,VR_FWD=.15;camera.position.set(0,EYE,0); // 目の高さ。VRは高め（VR_EYE）で、頭が自転車の中心より VR_FWD m 前に来るように合わせる
 addEventListener('resize',()=>{if(renderer.xr.isPresenting)return;renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();});
 
 /* ================= helpers ================= */
@@ -221,6 +229,7 @@ const leftOf=d=>[DZ[d],-DX[d]];
 const inGrid=(i,j)=>i>=0&&i<NX&&j>=0&&j<NZ;
 const NX0=-RW-70,NX1=(NX-1)*S+RW+70,NZ0=RW+70,NZ1=-(NZ-1)*S-RW-70;
 const GOAL=[6,5];
+const PLAN=plan([0,1],'Z'); // 1ブロックごとに曲がるジグザグ経路（約10回曲がる）
 const phaseOff=[];for(let i=0;i<NX;i++){phaseOff[i]=[];for(let j=0;j<NZ;j++)phaseOff[i][j]=W()*24;}
 const CYC=24;
 function light(i,j,axis){const t=((T+phaseOff[i][j])%CYC+CYC)%CYC;
@@ -501,13 +510,13 @@ function sCrash(){if(!ac)return;const n=ac.sampleRate*.35,b=ac.createBuffer(1,n,
 function say(t){if(mode!=='normal')return;sChime();try{if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=1.1;const vj=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('ja'));if(vj)u.voice=vj;setTimeout(()=>speechSynthesis.speak(u),250);}catch(e){}}
 
 /* ================= state ================= */
-let state='menu',mode='normal',xr=false;
+let state='menu',mode='normal',xr=false,scen='dog'; // scen：'route'＝大学へ向かう（道案内）、'dog'＝こむぎを探す
 let T=0,bx=0,bz=0,yaw=0,v=0,wob=0,steerIn=0,cool=0,flash=0,shake=0,rigY=0,calibT=-1;
 let gazing=false,prevGaze=false,bellT=-99,lookYaw=0,lookPitch=0,gz=0;
 let cars=[],parked=[],walkers=[],crossers=[],dart=null,hazards=[],route=[],curB=null,lastL=null,navCur=null,navSaid={};
 let rr=Math.random,distSinceDart=0,nextDartDist=100,crossDone={},prevLt={};
 let prevBrake=0,prevSteer=0,started=false,phoneT=0,compT=0,hudT=0,curbCool=0;
-let stats={};const results={normal:null,phone:null};
+let stats={};const results={route:{normal:null,phone:null},dog:{normal:null,phone:null}};
 
 /* ================= navigation ================= */
 function locate(x,z){const fx=-Math.sin(yaw),fz=-Math.cos(yaw);const gi=Math.round(x/S),gj=Math.round(-z/S);const dx=x-gi*S,dz=z+gj*S;
@@ -519,6 +528,20 @@ function locate(x,z){const fx=-Math.sin(yaw),fz=-Math.cos(yaw);const gi=Math.rou
 const same=(a,b)=>a&&b&&a[0]===b[0]&&a[1]===b[1];
 function dirBetween(a,b){for(let d=0;d<4;d++)if(a[0]+DI[d]===b[0]&&a[1]+DJ[d]===b[1])return d;return 0;}
 function quantDir(){const fx=-Math.sin(yaw),fz=-Math.cos(yaw);let best=0,bv=-9;for(let d=0;d<4;d++){const q=DX[d]*fx+DZ[d]*fz;if(q>bv){bv=q;best=d;}}return best;}
+const man=n=>Math.abs(n[0]-GOAL[0])+Math.abs(n[1]-GOAL[1]);
+function plan(B,axis){const r=[B.slice()];let[i,j]=B;let last=axis;while(i!==GOAL[0]||j!==GOAL[1]){const di=Math.sign(GOAL[0]-i),dj=Math.sign(GOAL[1]-j);let mv;
+  // 両方向に余地があるときは毎ブロック曲がる（覚えにくいジグザグ経路）
+  if(di&&dj)mv=last==='X'?'Z':'X';else mv=di?'X':'Z';if(mv==='X')i+=di;else j+=dj;last=mv;r.push([i,j]);}return r;}
+function onNext(A,B,d){if(!inGrid(B[0],B[1]))return;if(route.length&&same(route[0],B))return;
+  if(route.length>1&&same(route[0],A)&&same(route[1],B)){route.shift();return;}
+  const wrong=man(B)>=man(A);route=plan(B,axisOf(d));
+  if(wrong){stats.wrong++;showAlert('道を間違えた','info');say('ルートを外れました。再検索します');if(mode==='phone'){navSent={};navTrig={};pushYuta(pickR(['え、そっちじゃない！','違う違う笑','逆だよ！']),true);}}}
+function navInfo(L){if(!route.length)return null;let dist,inDir;
+  if(L.edge&&same(L.B,route[0])){dist=S-L.s;inDir=L.d;}else{const n=route[0];dist=Math.hypot(bx-n[0]*S,bz+n[1]*S);inDir=L.edge?L.d:quantDir();}
+  const total=dist+(route.length-1)*S;let acc=dist;
+  for(let k=0;k<route.length;k++){if(k===route.length-1)return{turn:'goal',dist:acc,total,key:'g'};
+    const out=dirBetween(route[k],route[k+1]);if(out!==inDir)return{turn:out===(inDir+1)%4?'right':out===(inDir+3)%4?'left':'uturn',dist:acc,total,key:route[k].join(',')+'>'+out};inDir=out;acc+=S;}}
+const TURNJ={right:'右',left:'左',uturn:'Uターン',goal:'目的地'};
 
 /* ================= hazards ================= */
 function hazard(type,brakeOnly=false){const h={type,brakeOnly,onset:T,reaction:null,gazed:gazing,hit:false};hazards.push(h);return h;}
@@ -624,7 +647,13 @@ function ringBell(){bellT=T;sBell();}
 /* ================= UI helpers ================= */
 const ui={hud:$('#hud'),spd:$('#spd'),remain:$('#remain'),remainRow:$('#remainRow'),chip:$('#modeChip'),navMeter:$('#navMeter'),navTurn:$('#navTurn'),navDist:$('#navDist'),navArrow:$('#navArrow'),
   gazeBox:$('#gazeBox'),gazeT:$('#gazeT'),gazeD:$('#gazeD'),gazeLive:$('#gazeLive'),alert:$('#alert'),polNear:$('#polNear'),hint:$('#hint'),touch:$('#touch')};
-let alertTimer=0;function showAlert(t,cls=''){ui.alert.textContent=t;ui.alert.className=cls;ui.alert.style.opacity=1;clearTimeout(alertTimer);alertTimer=setTimeout(()=>ui.alert.style.opacity=0,1500);}
+const vaCv=document.createElement('canvas');vaCv.width=1024;vaCv.height=200;const vaTex=new THREE.CanvasTexture(vaCv);vaTex.colorSpace=THREE.SRGBColorSpace;
+const vrAlert=new THREE.Mesh(new THREE.PlaneGeometry(.8,.156),new THREE.MeshBasicMaterial({map:vaTex,transparent:true,depthTest:false,depthWrite:false,fog:false}));
+vrAlert.position.set(0,.1,-1);vrAlert.renderOrder=30;vrAlert.visible=false;camera.add(vrAlert);let vrAlertT=0;
+function showVRAlert(t,cls){const c=vaCv.getContext('2d');c.clearRect(0,0,1024,200);c.fillStyle='rgba(20,22,26,.8)';rr2(c,8,8,1008,184,40);c.fill();
+  c.fillStyle=cls==='info'?'#ffc61a':'#ff4a3d';c.font='700 92px "Zen Kaku Gothic New","Hiragino Sans",sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(t,512,104);
+  vaTex.needsUpdate=true;vrAlert.visible=true;vrAlertT=performance.now()+1800;}
+let alertTimer=0;function showAlert(t,cls=''){if(xr)showVRAlert(t,cls);ui.alert.textContent=t;ui.alert.className=cls;ui.alert.style.opacity=1;clearTimeout(alertTimer);alertTimer=setTimeout(()=>ui.alert.style.opacity=0,1500);}
 const coarse=matchMedia('(pointer:coarse)').matches;
 function haptic(hand,amt,ms){const s=renderer.xr.getSession();if(!s)return;for(const src of s.inputSources)if(src.handedness===hand){try{src.gamepad?.hapticActuators?.[0]?.pulse(amt,ms);}catch(e){}}}
 function turnArrow(c,x,y,s,turn,color){c.save();c.translate(x,y);c.strokeStyle=color;c.fillStyle=color;c.lineWidth=s*.15;c.lineCap='round';c.lineJoin='round';
@@ -675,7 +704,8 @@ function drawMe(c,px,py){c.fillStyle='rgba(26,115,232,.22)';c.beginPath();c.arc(
 function drawStatus(c,col){c.fillStyle=col;c.font=`700 14px ${FONT}`;c.textAlign='left';const now=new Date();c.fillText(`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,20,21);
   c.strokeStyle=col;c.lineWidth=1.4;c.strokeRect(312,11,24,11);c.fillRect(314,13,15,7);}
 const MAP_PH=340,LINE_H=30,KB_H=160; // 画面の上から：地図アプリ（ステータスバー込み）／LINEの見出し
-function drawPhone(){const c=pc;c.setTransform(PS,0,0,PS,0,0);
+function drawPhone(){if(scen==='route')drawPhoneRoute();else drawPhoneDog();}
+function drawPhoneDog(){const c=pc;c.setTransform(PS,0,0,PS,0,0);
   // 上：地図アプリ。北が上で固定、自分（青い点）が中心に来るように町の範囲内でスクロール。目印の名前が読める縮尺
   c.fillStyle='#fff';c.fillRect(0,0,PW,24);drawStatus(c,'#111');
   const my=24,mh=MAP_PH-24,ppm=1.7,hw=PW/2/ppm,hh=mh/2/ppm;
@@ -720,7 +750,8 @@ function relAng(t){const dx=t.x-bx,dz=t.z-bz;return Math.atan2(dx*Math.cos(yaw)-
 function dirArrow(c,x,y,s,ang,color){c.save();c.translate(x,y);c.rotate(ang);c.strokeStyle=color;c.fillStyle=color;c.lineWidth=s*.15;c.lineCap='round';
   c.beginPath();c.moveTo(0,s*.38);c.lineTo(0,-s*.12);c.stroke();c.beginPath();c.moveTo(0,-s*.42);c.lineTo(-s*.22,-s*.1);c.lineTo(s*.22,-s*.1);c.closePath();c.fill();c.restore();}
 const remainStr=()=>{const r=Math.max(0,LIMIT-stats.time);return`${Math.floor(r/60)}:${String(Math.floor(r%60)).padStart(2,'0')}`;};
-function drawComp(){const c=cc;c.fillStyle='#b7c59f';c.fillRect(0,0,240,150);c.fillStyle='#1d2416';
+function drawComp(){if(scen==='route')drawCompRoute(navCur);else drawCompDog();}
+function drawCompDog(){const c=cc;c.fillStyle='#b7c59f';c.fillRect(0,0,240,150);c.fillStyle='#1d2416';
   if(mode==='normal'){if(dogNav){dirArrow(c,48,64,80,relAng(dogNav),'#1d2416');c.font='600 46px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText(String(Math.round(Math.hypot(dogNav.x-bx,dogNav.z-bz)/5)*5),96,76);
       c.font=`700 18px ${FONT}`;c.fillText('m 目撃地点',98,102);}else{c.font=`700 22px ${FONT}`;c.textAlign='left';c.fillText('情報待ち…',20,74);}
     c.font=`700 22px ${FONT}`;c.textAlign='left';c.fillText(`${(v*3.6).toFixed(0)} km/h`,14,138);c.textAlign='right';c.fillText(`残り ${remainStr()}`,228,138);}
@@ -825,9 +856,11 @@ const CHAT_LIMIT=26,TYPE_CPS=5;
 let chat={history:[],cur:null,typed:0,idx:0,nextAt:0,ping:0},banner=null,bannerNext=0;
 const tmNow=()=>{const d=new Date();return`${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
 const pickR=a=>a[(rr()*a.length)|0];
-function resetChat(){chat={history:[{sys:true,text:'今日'}],cur:null,typed:0,idx:0,nextAt:40,ping:0};banner=null;bannerNext=18+rr()*6;}
+function resetChat(){if(scen==='route')resetChatRoute();else resetChatDog();}
+function resetChatDog(){chat={history:[{sys:true,text:'今日'}],cur:null,typed:0,idx:0,nextAt:40,ping:0};banner=null;bannerNext=18+rr()*6;}
 function pushMsg(from,o){chat.history.push({from,tm:tmNow(),...o});if(mode==='phone'){sNotify();haptic('left',.6,120);}}
-function chatTick(dt){
+function chatTick(dt){if(scen==='route')chatTickRoute(dt);else chatTickDog(dt);}
+function chatTickDog(dt){
   while(sightIdx<sights.length&&T>=sights[sightIdx].at)deliver(sights[sightIdx++]);
   if(mode!=='phone')return;
   if(T>=bannerNext){const[f,t]=BANNERS[(rr()*BANNERS.length)|0];banner={from:f,text:t,until:T+3.6};bannerNext=T+11+rr()*10;sNotify();haptic('left',.4,80);}
@@ -839,6 +872,94 @@ function chatTick(dt){
   if(chat.cur&&c.nudge&&!c.nudged&&T-c.t0>11){c.nudged=true;stats.nudged++;pushMsg(c.from,{text:c.nudge});}
   if(chat.cur&&T-c.t0>CHAT_LIMIT){stats.unanswered++;chat.cur=null;chat.nextAt=T+8;}
   if(chat.history.length>40)chat.history.splice(0,chat.history.length-40);}
+/* ----- 大学へ向かう（道案内）シナリオ：ゆうたが1対1のLINEで道順を送ってくる ----- */
+let navSent={},navTrig={};
+const CHAT_ROUTE=[
+  {text:'今どこらへん？',reply:'チャリで向かってる',nudge:'おーい'},
+  {text:'道わかる？笑',reply:'案内たのむ',nudge:'見てる？'},
+  {text:'昼メシ学食でいい？',reply:'いいよ',nudge:'既読無視？笑'},
+  {text:'レポートもう出した？',reply:'まだ、今夜やる',nudge:'おーい'},
+  {text:'先輩もう来てるって',reply:'りょ、急ぐ',nudge:'急げー'},
+  {text:'飲み物買っとこうか？',reply:'お茶でお願い',nudge:'いらない？'},
+  {text:'ゼミ13時からだよね？',reply:'そう、13時から',nudge:'？'},
+  {text:'スライド何枚になった？',reply:'15枚くらい',nudge:'おーい'},
+  {text:'着いたら連絡して',reply:'了解',nudge:'まだ？'},
+];
+function resetChatRoute(){chat={history:[{sys:true,text:'今日'}],cur:null,typed:0,idx:0,nextAt:9,ping:0};banner=null;bannerNext=12+rr()*6;navSent={};navTrig={};
+  pushYuta('正門で待ってるね！道はLINEで教える',false);}
+function pushYuta(text,nav=true){chat.history.push({from:'ゆうた',text,tm:tmNow(),nav});if(mode==='phone'){sNotify();haptic('left',.6,120);if(nav)stats.navMsgs++;}}
+function chatTickRoute(dt){if(mode!=='phone')return;
+  if(T>=bannerNext){const[f,t]=BANNERS[(rr()*BANNERS.length)|0];banner={from:f,text:t,until:T+3.6};bannerNext=T+9+rr()*9;sNotify();haptic('left',.4,80);}
+  if(!chat.cur&&T>=chat.nextAt){const m=CHAT_ROUTE[chat.idx++%CHAT_ROUTE.length];chat.cur={...m,t0:T,nudged:false};chat.typed=0;chat.ping=T;pushYuta(m.text,false);stats.received++;}
+  const c=chat.cur;if(!c)return;
+  if(gazing){chat.typed+=dt*TYPE_CPS;stats.typeTime+=dt;
+    if(chat.typed>=c.reply.length){chat.history.push({out:true,text:c.reply,tm:tmNow()});stats.replies++;stats.replyTimeSum+=T-c.t0;sSent();chat.cur=null;chat.nextAt=T+5+rr()*5;}}
+  else if(T-chat.ping>4){chat.ping=T;sNotify();haptic('left',.5,100);}
+  if(chat.cur&&!c.nudged&&T-c.t0>11){c.nudged=true;stats.nudged++;pushYuta(c.nudge,false);}
+  if(chat.cur&&T-c.t0>CHAT_LIMIT){stats.unanswered++;chat.cur=null;chat.nextAt=T+3;}
+  if(chat.history.length>40)chat.history.splice(0,chat.history.length-40);}
+// これから曲がる交差点を最大2つ返す（straight=手前で直進する交差点の数）
+function upcoming(L){if(!route.length)return[];let dist,inDir;
+  if(L.edge&&same(L.B,route[0])){dist=S-L.s;inDir=L.d;}else{const n=route[0];dist=Math.hypot(bx-n[0]*S,bz+n[1]*S);inDir=L.edge?L.d:quantDir();}
+  const out=[];let acc=dist,st=0;
+  for(let k=0;k<route.length;k++){if(k===route.length-1){out.push({node:route[k],turn:'goal',dist:acc,key:'g',straight:st});break;}
+    const o=dirBetween(route[k],route[k+1]);
+    if(o!==inDir){out.push({node:route[k],turn:o===(inDir+1)%4?'right':o===(inDir+3)%4?'left':'uturn',dist:acc,key:route[k].join(',')+'>'+o,straight:st});st=0;if(out.length>=2)break;}else st++;
+    inDir=o;acc+=S;}
+  return out;}
+function landmarkAt(n){const L=LANDMARKS.find(L=>Math.abs(L.x-n[0]*S)<RW+6&&Math.abs(L.z+n[1]*S)<RW+6);return L?L.name:null;}
+function lineNav(L){const U=upcoming(L);if(!U.length)return;const a=U[0];if(navSent[a.key])return;
+  const trig=navTrig[a.key]??=(26+rr()*26)+a.straight*S;if(a.dist>trig)return;navSent[a.key]=1;let txt;
+  if(a.turn==='goal')txt=pickR(['そのまま行けば正門！','正門もうすぐだよ〜','正門の前にいる！見える？']);
+  else if(a.turn==='uturn')txt='逆！Uターンして戻って';
+  else{const t=TURNJ[a.turn],lm=landmarkAt(a.node);
+    if(a.straight>=1)txt=`${a.straight+1}つ目の信号を${t}`;
+    else if(lm&&rr()<.7)txt=pickR([`${lm}の角を${t}ね`,`${lm}があるとこ${t}`,`${lm}見えたら${t}`]);
+    else txt=pickR([`次の信号を${t}！`,`次${t}ね`,`そこの交差点${t}`,`次の角${t}`]);
+    const b=U[1];if(b&&b.turn!=='goal'&&b.turn!=='uturn'&&b.straight===0&&rr()<.45){txt+=`、そのあとすぐ${TURNJ[b.turn]}`;navSent[b.key]=1;}}
+  pushYuta(txt,true);}
+function drawPhoneRoute(){const c=pc;c.setTransform(PS,0,0,PS,0,0);
+  const BG='#8ea9cf',HD='#7f9bc3';c.fillStyle=BG;c.fillRect(0,0,PW,PH);
+  // ステータスバーとヘッダー
+  c.fillStyle=HD;c.fillRect(0,0,PW,82);c.fillStyle='#fff';c.font=`700 14px ${FONT}`;c.textAlign='left';const now=new Date();c.fillText(`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`,20,21);
+  c.strokeStyle='#fff';c.lineWidth=1.4;c.strokeRect(312,11,24,11);c.fillRect(314,13,15,7);
+  c.font=`400 26px ${FONT}`;c.fillText('‹',12,62);c.font=`700 18px ${FONT}`;c.fillText('ゆうた',40,61);
+  c.lineWidth=2;c.beginPath();c.arc(262,54,7,0,7);c.moveTo(267,59);c.lineTo(272,64);c.stroke();
+  c.beginPath();c.moveTo(292,48);c.quadraticCurveTo(290,60,302,64);c.stroke();for(let k=0;k<3;k++){c.fillRect(322,47+k*7,16,2);}
+  // メッセージ（新しいものが下）
+  const kb=!!(chat.cur&&gazing&&chat.typed>0),kbH=kb?236:0,inH=50,bottom=PH-inH-kbH;
+  c.save();c.beginPath();c.rect(0,82,PW,bottom-82);c.clip();c.font=`400 15px ${FONT}`;let y=bottom-10;
+  for(let k=chat.history.length-1;k>=0;k--){const m=chat.history[k];
+    if(m.sys){y-=30;if(y<82)break;c.font=`400 11px ${FONT}`;const tw=c.measureText(m.text).width+20;c.fillStyle='rgba(60,80,110,.35)';rr2(c,PW/2-tw/2,y+4,tw,20,10);c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(m.text,PW/2,y+18);c.font=`400 15px ${FONT}`;continue;}
+    const lines=wrapT(c,m.text,200),h=lines.length*21+14,w=Math.max(...lines.map(l=>c.measureText(l).width))+24;y-=h+12;if(y+h<82)break;
+    c.textAlign='left';
+    if(m.out){const x=PW-12-w;c.fillStyle='#85e249';rr2(c,x,y,w,h,16);c.fill();c.beginPath();c.moveTo(x+w-6,y+8);c.lineTo(x+w+6,y+4);c.lineTo(x+w-2,y+18);c.fill();
+      c.fillStyle='#111';lines.forEach((l,q)=>c.fillText(l,x+12,y+22+q*21));c.fillStyle='#eef3fa';c.font=`400 10px ${FONT}`;c.textAlign='right';c.fillText('既読',x-5,y+h-16);c.fillText(m.tm,x-5,y+h-3);c.font=`400 15px ${FONT}`;}
+    else{const x=54;c.fillStyle='#f2c94c';c.beginPath();c.arc(28,y+16,17,0,7);c.fill();c.fillStyle='#6b4f12';c.font=`700 15px ${FONT}`;c.textAlign='center';c.fillText('ゆ',28,y+21);c.font=`400 15px ${FONT}`;c.textAlign='left';
+      c.fillStyle='#fff';rr2(c,x,y,w,h,16);c.fill();c.beginPath();c.moveTo(x+6,y+8);c.lineTo(x-6,y+4);c.lineTo(x+2,y+18);c.fill();
+      c.fillStyle='#111';lines.forEach((l,q)=>c.fillText(l,x+12,y+22+q*21));c.fillStyle='#eef3fa';c.font=`400 10px ${FONT}`;c.fillText(m.tm,x+w+5,y+h-3);c.font=`400 15px ${FONT}`;}}
+  c.restore();
+  // 入力欄（スマホを見ている間だけ文字が入る）
+  const iy=PH-kbH-inH;c.fillStyle='#fff';c.fillRect(0,iy,PW,inH);c.strokeStyle='#8a8f96';c.lineWidth=2;c.beginPath();c.moveTo(14,iy+25);c.lineTo(30,iy+25);c.moveTo(22,iy+17);c.lineTo(22,iy+33);c.stroke();
+  c.fillStyle='#f0f1f3';rr2(c,44,iy+9,PW-104,32,16);c.fill();c.font=`400 15px ${FONT}`;c.textAlign='left';
+  if(chat.cur&&chat.typed>0){c.fillStyle='#111';c.fillText(chat.cur.reply.slice(0,Math.floor(chat.typed))+((T*2|0)%2&&gazing?'|':''),56,iy+31);}else{c.fillStyle='#9aa0a6';c.fillText('Aa',56,iy+31);}
+  if(chat.cur&&chat.typed>0&&!gazing){c.fillStyle='#e0383e';c.font=`700 11px ${FONT}`;c.textAlign='right';c.fillText('入力停止中',PW-64,iy+30);}
+  c.fillStyle=chat.cur&&chat.typed>0?'#06c755':'#c4c8cc';c.beginPath();c.arc(PW-30,iy+25,15,0,7);c.fill();c.fillStyle='#fff';c.beginPath();c.moveTo(PW-36,iy+19);c.lineTo(PW-21,iy+25);c.lineTo(PW-36,iy+31);c.closePath();c.fill();
+  // フリック入力キーボード（入力中に表示）
+  if(kb){const ky=PH-kbH;c.fillStyle='#d1d4d9';c.fillRect(0,ky,PW,kbH);c.textAlign='center';
+    KB_ROWS.forEach((row,r)=>row.forEach((k,q)=>{if(!k)return;const kw=(PW-24)/5,x=6+q*(kw+3),yy=ky+8+r*56;c.fillStyle=q===0||q===4?'#aeb3ba':'#fff';rr2(c,x,yy,kw,50,6);c.fill();
+      c.fillStyle='#222';c.font=`${k.length>2?400:500} ${k.length>2?13:20}px ${FONT}`;c.fillText(k,x+kw/2,yy+32);}));}
+  // 他のアプリ・他の人からの通知バナー
+  if(banner&&T<banner.until){const by=8;c.fillStyle='rgba(245,246,248,.97)';rr2(c,8,by,PW-16,70,16);c.fill();c.fillStyle='#06c755';rr2(c,20,by+14,40,40,10);c.fill();
+    c.fillStyle='#fff';c.font=`900 11px ${FONT}`;c.textAlign='center';c.fillText('LINE',40,by+38);c.textAlign='left';c.fillStyle='#111';c.font=`700 14px ${FONT}`;c.fillText(banner.from,72,by+30);
+    c.font=`400 13px ${FONT}`;c.fillStyle='#333';c.fillText(banner.text.length>20?banner.text.slice(0,20)+'…':banner.text,72,by+52);c.fillStyle='#888';c.font=`400 11px ${FONT}`;c.textAlign='right';c.fillText('今',PW-22,by+28);}
+  phoneTex.needsUpdate=true;}
+function drawCompRoute(nav){const c=cc;c.fillStyle='#b7c59f';c.fillRect(0,0,240,150);c.fillStyle='#1d2416';
+  if(mode==='normal'&&nav){turnArrow(c,46,62,76,nav.turn,'#1d2416');c.font='600 50px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText(String(Math.max(0,Math.round(nav.dist/5)*5)),94,78);c.font=`700 20px ${FONT}`;c.fillText(nav.turn==='goal'?'m 目的地':`m 先 ${TURNJ[nav.turn]}`,96,104);
+    c.font=`700 22px ${FONT}`;c.fillText(`${(v*3.6).toFixed(0)} km/h`,14,138);}
+  else{c.font='600 76px "IBM Plex Mono",monospace';c.textAlign='right';c.fillText((v*3.6).toFixed(0),172,96);c.font='600 22px "IBM Plex Mono",monospace';c.textAlign='left';c.fillText('km/h',178,96);c.font=`700 20px ${FONT}`;c.fillText(`${Math.floor(stats.time/60)}:${String(Math.floor(stats.time%60)).padStart(2,'0')}`,14,136);}
+  compTex.needsUpdate=true;}
+
 const sNotify=()=>{tone(1318,.1,'sine',.12);tone(1760,.16,'sine',.12,.1);};
 const sSent=()=>tone(990,.08,'sine',.07);
 
@@ -885,7 +1006,8 @@ function sWhistle(){for(let k=0;k<7;k++)tone(k%2?2950:2700,.09,'square',.05,k*.0
 function speak(t){try{if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=1.1;const vj=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('ja'));if(vj)u.voice=vj;speechSynthesis.speak(u);}catch(e){}}
 function setupPolice(){const spots=[];const has=(A,d)=>spots.some(q=>same(q[0],A)&&q[1]===d);
   // ルート上に3人（両モードで必ず前を通る）＋それ以外の道に3人
-  for(const k of[2,5,8]){const e=dogPath[k];if(e&&!has(e.A,e.d))spots.push([e.A.slice(),e.d,S*.5]);}
+  if(scen==='dog'){for(const k of[2,5,8]){const e=dogPath[k];if(e&&!has(e.A,e.d))spots.push([e.A.slice(),e.d,S*.5]);}}
+  else for(const k of[1,4,7])if(PLAN[k+1])spots.push([PLAN[k].slice(),dirBetween(PLAN[k],PLAN[k+1]),S*.5]);
   for(let n=0;n<30&&spots.length<police.length;n++){const[A,d0]=edges[(rr()*edges.length)|0];const d=rr()<.5?d0:(d0+2)%4;const A2=d===d0?A:[A[0]+DI[d0],A[1]+DJ[d0]];const s=RW+10+rr()*(S-2*RW-20);
     if((same(A2,[0,0])&&d===0)||has(A2,d))continue;spots.push([A2,d,s]);}
   police.forEach((o,k)=>{const q=spots[k];o.on=!!q;o.g.visible=!!q;if(!q)return;const[x,z]=ePt(q[0],q[1],q[2],RW+2);const[lx,lz]=leftOf(q[1]);
@@ -918,7 +1040,8 @@ function startRun(m){audio();mode=m;state='play';T=0;rr=rng32(777);
   yaw=0;v=0;wob=0;steerIn=0;cool=0;flash=0;prevGaze=false;gazing=false;started=false;lookYaw=0;lookPitch=0;gz=0;camera.fov=72;camera.updateProjectionMatrix();
   [bx,bz]=ePt([0,0],0,22,BL);
   stats={time:0,dist:0,gazeTime:0,gazeDist:0,glances:0,longest:0,longestDist:0,cur:0,curDist:0,colPed:0,colCar:0,colObj:0,nearMiss:0,redRuns:0,wrong:0,received:0,replies:0,replyTimeSum:0,typeTime:0,nudged:0,unanswered:0,navMsgs:0,policePass:0,caught:false,catchTime:null,lostTime:0,sightings:0,escapes:0,colDog:0,policeWarn:0,policeGaze:0};resetChat();
-  hazards=[];lastL=null;resetDog();distSinceDart=0;nextDartDist=70;crossDone={};prevLt={};
+  hazards=[];lastL=null;route=PLAN.map(n=>n.slice());curB=[0,1];navSaid={};navCur=null;
+  if(scen==='dog')resetDog();else{dog=null;dogMesh.visible=false;dogNav=null;sights=[];sightIdx=0;}distSinceDart=0;nextDartDist=70;crossDone={};prevLt={};
   for(const p of people)freePerson(p);crossers=[];dart=null;
   for(const m of carPool)m.visible=false;
   // parked cars in bike lanes
@@ -931,20 +1054,21 @@ function startRun(m){audio();mode=m;state='play';T=0;rr=rng32(777);
   phone.visible=m==='phone';vrPanel.visible=false;
   $('#menu').hidden=true;$('#results').hidden=true;
   ui.hud.hidden=xr;ui.chip.textContent=m==='phone'?'ながらスマホ':'ハンドルナビ';ui.chip.className='chip'+(m==='phone'?' phone':'');
-  ui.gazeBox.hidden=m!=='phone';ui.navMeter.hidden=m==='phone';ui.remainRow.hidden=false;
+  ui.gazeBox.hidden=m!=='phone';ui.navMeter.hidden=m==='phone';ui.remainRow.hidden=scen==='route'&&m==='phone';
   ui.touch.hidden=!(coarse&&!xr);
-  ui.hint.hidden=xr;ui.hint.style.opacity=1;ui.hint.textContent=m==='phone'?(coarse?'ドラッグで視点。下を向くとスマホの地図とLINE ／「こぐ」で出発':'左下のスマホに目線を落とすと地図とLINE ／ W でこぐ'):(coarse?'目撃情報は音声とハンドルの矢印で ／「こぐ」で出発':'目撃情報は音声とハンドルの矢印で ／ W / ↑ でこぎ出す ／ クリックでマウス視点');
+  ui.hint.hidden=xr;ui.hint.style.opacity=1;ui.hint.textContent=scen==='route'?(m==='phone'?(coarse?'ドラッグで視点。下を向くとスマホのLINE ／「こぐ」で出発':'クリックでマウス視点 ／ 左下のスマホに目線を落とすとLINEが読めて返信が進む ／ W でこぐ'):(coarse?'「こぐ」で出発（ドラッグで視点）':'W / ↑ でこぎ出す ／ クリックでマウス視点')):m==='phone'?(coarse?'ドラッグで視点。下を向くとスマホの地図とLINE ／「こぐ」で出発':'左下のスマホに目線を落とすと地図とLINE ／ W でこぐ'):(coarse?'目撃情報は音声とハンドルの矢印で ／「こぐ」で出発':'目撃情報は音声とハンドルの矢印で ／ W / ↑ でこぎ出す ／ クリックでマウス視点');
   attachPhone();updateLamps();placeRig(0,{steer:0});
+  if(scen==='route')say('ルート案内を開始します。大学正門へ向かいます');
 }
 function attachPhone(){if(xr){const lg=grips.find(g=>g.userData.hand==='left');if(lg){lg.add(phone);phone.position.set(0,.035,-.05);phone.rotation.set(-1.15,0,0);for(const g of grips)if(g.userData.box)g.userData.box.visible=!(g===lg&&mode==='phone');return;}}
   rig.add(phone);phone.position.copy(P_HOLD.p);phone.rotation.copy(P_HOLD.r);}
 function finishGlance(){if(prevGaze&&stats.cur>stats.longest){stats.longest=stats.cur;stats.longestDist=stats.curDist;}prevGaze=false;}
 const HTYPES=['飛び出し','犬の飛び出し','信号の変化'];
-function endRun(ok){finishGlance();state='result';stats.caught=!!ok;if(ok)stats.catchTime=stats.time;gz=0;camera.fov=72;camera.updateProjectionMatrix();say(ok?'こむぎを捕まえました':'時間切れです。こむぎを見失いました');
+function endRun(ok){finishGlance();state='result';stats.caught=!!ok;if(ok)stats.catchTime=stats.time;gz=0;camera.fov=72;camera.updateProjectionMatrix();say(scen==='route'?'目的地に到着しました':ok?'こむぎを捕まえました':'時間切れです。こむぎを見失いました');
   const re=hazards.filter(h=>h.reaction!==null).map(h=>h.reaction);
   const byType={};for(const t of HTYPES){const hs=hazards.filter(h=>h.type===t);const rs=hs.filter(h=>h.reaction!==null).map(h=>h.reaction);
     byType[t]={n:hs.length,reacted:rs.length,avg:rs.length?rs.reduce((a,b)=>a+b,0)/rs.length:null,hit:hs.filter(h=>h.hit).length,gazed:hs.filter(h=>h.gazed).length};}
-  results[mode]={...stats,avg:stats.dist/Math.max(stats.time,.01)*3.6,gazeRatio:stats.gazeTime/Math.max(stats.time,.01),avgReact:re.length?re.reduce((a,b)=>a+b,0)/re.length:null,
+  results[scen][mode]={...stats,avg:stats.dist/Math.max(stats.time,.01)*3.6,gazeRatio:stats.gazeTime/Math.max(stats.time,.01),avgReact:re.length?re.reduce((a,b)=>a+b,0)/re.length:null,
     hazTotal:hazards.length,missed:hazards.filter(h=>h.reaction===null).length,byType};
   ui.hud.hidden=true;ui.touch.hidden=true;ui.hint.hidden=true;ui.polNear.hidden=true;unlock();
   if(xr){drawVRPanel();vrPanel.visible=true;}else showResults();}
@@ -953,7 +1077,8 @@ function toMenu(){state='menu';dogMesh.visible=false;ui.polNear.hidden=true;unlo
 /* ================= main update ================= */
 const tA=new THREE.Vector3(),tB=new THREE.Vector3(),tF=new THREE.Vector3();
 // 視線（カメラ正面）とスマホ方向のなす角で注視を判定（PC・VR共通）
-function lookingAtPhone(){const cam=xr?renderer.xr.getCamera():camera;cam.getWorldPosition(tA);phone.getWorldPosition(tB);tB.sub(tA).normalize();cam.getWorldDirection(tF);return tF.dot(tB)>Math.cos(.3);}
+// VRでも camera には毎フレーム頭の姿勢が入る（renderer.xr.getCamera() の position/quaternion は更新されないので使わない）
+function lookingAtPhone(){const cam=camera;cam.getWorldPosition(tA);phone.getWorldPosition(tB);tB.sub(tA).normalize();cam.getWorldDirection(tF);return tF.dot(tB)>Math.cos(.3);}
 function crash(kind,h){stats[kind]++;if(h)h.hit=true;cool=1.6;flash=1;shake=1;sCrash();showAlert('衝突！');haptic('right',1,200);haptic('left',1,200);v=0;
   for(const hz of hazards)if(hz.reaction===null&&T-hz.onset<4.5&&!hz.hit&&kind==='colPed'&&hz.type==='飛び出し')hz.hit=true;}
 function update(dt,inp){T+=dt;
@@ -974,7 +1099,7 @@ function update(dt,inp){T+=dt;
   if(lastL&&lastL.edge&&L.node&&same(lastL.B,[L.i,L.j])){if(light(L.i,L.j,axisOf(lastL.d))==='R'){stats.redRuns++;showAlert('信号無視');haptic('right',.8,150);}}
   if(L.edge&&inGrid(L.B[0],L.B[1])){const key=L.B.join(',')+axisOf(L.d);const lt=light(L.B[0],L.B[1],axisOf(L.d));const dStop=S-L.s-RW-4.4;
     if(prevLt[key]==='G'&&lt==='Y'&&dStop>4&&dStop<48&&v>2)hazard('信号の変化',true);prevLt[key]=lt;
-  }
+    if(scen==='route'&&(!curB||!same(curB,L.B))){const old=curB;curB=L.B.slice();if(old)onNext(L.A,L.B,L.d);}}
   lastL=L;
   director(dt,L);updateCars(dt);updatePeds(dt,L);updatePolice(dt);updateDog(dt,L);if(state!=='play')return;updateLamps();
   // collisions
@@ -990,20 +1115,29 @@ function update(dt,inp){T+=dt;
   const bE=inp.brake>.35&&prevBrake<=.35,sE=Math.abs(inp.steer)>.5&&Math.abs(prevSteer)<=.5;prevBrake=inp.brake;prevSteer=inp.steer;
   for(const h of hazards){if(h.reaction!==null||T-h.onset>4.5)continue;if(bE||(!h.brakeOnly&&sE))h.reaction=T-h.onset;}
   // nav
+  const nav=scen==="route"?navInfo(L):null;navCur=nav;
+  if(nav&&mode==='normal'){const st=navSaid[nav.key]||0;const tj=TURNJ[nav.turn];
+    if(nav.turn==='goal'){if(nav.dist<45&&st<1){navSaid[nav.key]=1;say('まもなく目的地です');}}
+    else if(nav.dist<20&&st<2){navSaid[nav.key]=2;say(`まもなく、${tj}方向です`);}
+    else if(nav.dist<62&&nav.dist>25&&st<1){navSaid[nav.key]=1;say(`およそ${Math.round(nav.dist/10)*10}メートル先、${tj}方向です`);}}
   // stats
   stats.time+=dt;stats.dist+=v*dt;distSinceDart+=v*dt;
   if(gazing&&!prevGaze){stats.glances++;stats.cur=0;stats.curDist=0;}
   if(gazing){stats.gazeTime+=dt;stats.gazeDist+=v*dt;stats.cur+=dt;stats.curDist+=v*dt;}
   if(!gazing&&prevGaze)finishGlance();prevGaze=gazing;
-  if(stats.time>=LIMIT){showAlert('時間切れ…');endRun(false);return;}
+  if(scen==='dog'&&stats.time>=LIMIT){showAlert('時間切れ…');endRun(false);return;}
+  if(scen==='route'&&Math.hypot(bx-GOAL[0]*S,bz+GOAL[1]*S)<7){endRun(true);return;}
   placeRig(dt,inp);
-  chatTick(dt);phoneT-=dt;if(mode==='phone'&&phoneT<=0){drawPhone();phoneT=.1;}
+  if(scen==='route'&&mode==='phone')lineNav(L);chatTick(dt);phoneT-=dt;if(mode==='phone'&&phoneT<=0){drawPhone();phoneT=.1;}
   compT-=dt;if(compT<=0){drawComp();compT=.15;}
   hudT-=dt;if(hudT<=0&&!xr){hudT=.08;ui.spd.textContent=(v*3.6).toFixed(0);
-    ui.remain.textContent=remainStr();
-    if(mode==='normal'){const a=ui.navArrow.getContext('2d');a.clearRect(0,0,92,92);if(dogNav){ui.navTurn.textContent=dogNav.place.short;ui.navDist.textContent=`${Math.round(Math.hypot(dogNav.x-bx,dogNav.z-bz)/5)*5} m 先（${dogNav.who}）`;dirArrow(a,46,46,80,relAng(dogNav),'#ffc61a');}else{ui.navTurn.textContent='情報待ち';ui.navDist.textContent='目撃情報を待っています';}}
+    if(scen==='route'){if(nav)ui.remainRow.textContent=`目的地まで ${Math.round(nav.total)} m`;
+      if(mode==='normal'&&nav){ui.navTurn.textContent=nav.turn==='goal'?'目的地':`${TURNJ[nav.turn]}方向`;ui.navDist.textContent=`${Math.max(0,Math.round(nav.dist/5)*5)} m 先`;
+        const a=ui.navArrow.getContext('2d');a.clearRect(0,0,92,92);turnArrow(a,46,50,74,nav.turn,'#ffc61a');}}
+    else{ui.remainRow.textContent=`残り ${remainStr()}`;}
+    if(scen==='dog'&&mode==='normal'){const a=ui.navArrow.getContext('2d');a.clearRect(0,0,92,92);if(dogNav){ui.navTurn.textContent=dogNav.place.short;ui.navDist.textContent=`${Math.round(Math.hypot(dogNav.x-bx,dogNav.z-bz)/5)*5} m 先（${dogNav.who}）`;dirArrow(a,46,46,80,relAng(dogNav),'#ffc61a');}else{ui.navTurn.textContent='情報待ち';ui.navDist.textContent='目撃情報を待っています';}}
     if(mode==='phone'){ui.gazeT.textContent=stats.gazeTime.toFixed(1);ui.gazeD.textContent=stats.gazeDist.toFixed(0);ui.gazeLive.hidden=!gazing;}}}
-function placeRig(dt,inp){if(xr&&calibT>=0&&T-calibT>.4){rigY=EYE-camera.position.y;calibT=-1;}
+function placeRig(dt,inp){if(xr&&calibT>=0&&T-calibT>.4){rigY=VR_EYE-camera.position.y;bike.position.set(camera.position.x,0,camera.position.z+VR_FWD);calibT=-1;}
   rig.position.set(bx,xr?rigY:0,bz);rig.rotation.y=yaw;bars.rotation.y=-inp.steer*.32+wob*.05;
   flash=Math.max(0,flash-dt*1.8);flashMesh.material.opacity=flash*.55;shake=Math.max(0,shake-dt*2.5);
   if(!xr){const bob=Math.sin(stats.dist*1.9)*.012*Math.min(1,v/3);
@@ -1026,22 +1160,24 @@ const grips=[0,1].map(i=>{const g=renderer.xr.getControllerGrip(i);rig.add(g);
   b.disabled=!ok;st.textContent=ok?'VRヘッドセットを検出しました。座ったままでも遊べます（右Bで目線の高さを合わせ直し）。'
     :'この画面ではVRを起動できません（埋め込み表示ではWebXRが許可されないことがあります）。VRで遊ぶには、このHTMLファイルをHTTPSで配信し、Meta Quest のブラウザで開いてください。画面モードはそのまま遊べます。';})();
 $('#startVR').addEventListener('click',async()=>{audio();try{const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});
-    await renderer.xr.setSession(s);xr=true;s.addEventListener('end',()=>{xr=false;rigY=0;camera.position.set(0,EYE,0);renderer.setSize(innerWidth,innerHeight,false);if(state==='result')showResults();else toMenu();});
-    startRun(selMode());calibT=T;}catch(e){$('#vrStatus').textContent='VRセッションを開始できませんでした：'+(e&&e.message||e);}});
-function drawVRPanel(){const c=vc,r=results[mode];c.fillStyle='#1b5cbd';c.fillRect(0,0,1024,760);c.strokeStyle='#fff';c.lineWidth=10;c.strokeRect(14,14,996,732);
-  c.fillStyle='#fff';c.font=`700 54px ${FONT}`;c.textAlign='left';c.fillText(`${r.caught?'こむぎ確保！':'時間切れ…'}（${mode==='phone'?'ながらスマホ':'ハンドルナビ'}）`,56,100);
-  const rows=[['こむぎ',r.caught?`捕まえた（${r.catchTime.toFixed(1)} 秒）`:'時間切れ'],['見失っていた時間',`${r.lostTime.toFixed(1)} 秒`],['衝突（人・車・物）',`${r.colPed}・${r.colCar}・${r.colObj}`],['ヒヤリハット',`${r.nearMiss} 回`],['信号無視',`${r.redRuns} 回`],['平均反応時間',r.avgReact==null?'—':`${r.avgReact.toFixed(2)} 秒`]];
+    await renderer.xr.setSession(s);xr=true;s.addEventListener('end',()=>{xr=false;rigY=0;bike.position.set(0,0,0);camera.position.set(0,EYE,0);renderer.setSize(innerWidth,innerHeight,false);if(state==='result')showResults();else toMenu();});
+    scen=selScen();startRun(selMode());calibT=T;}catch(e){$('#vrStatus').textContent='VRセッションを開始できませんでした：'+(e&&e.message||e);}});
+function drawVRPanel(){const c=vc,r=results[scen][mode];c.fillStyle='#1b5cbd';c.fillRect(0,0,1024,760);c.strokeStyle='#fff';c.lineWidth=10;c.strokeRect(14,14,996,732);
+  c.fillStyle='#fff';c.font=`700 54px ${FONT}`;c.textAlign='left';c.fillText(`${scen==='route'?'到着！':r.caught?'こむぎ確保！':'時間切れ…'}（${mode==='phone'?'ながらスマホ':'ハンドルナビ'}）`,56,100);
+  const rows=[...(scen==='route'?[['タイム',`${r.time.toFixed(1)} 秒`],['道を間違えた',`${r.wrong} 回`]]:[['こむぎ',r.caught?`捕まえた（${r.catchTime.toFixed(1)} 秒）`:'時間切れ'],['見失っていた時間',`${r.lostTime.toFixed(1)} 秒`]]),['衝突（人・車・物）',`${r.colPed}・${r.colCar}・${r.colObj}`],['ヒヤリハット',`${r.nearMiss} 回`],['信号無視',`${r.redRuns} 回`],['平均反応時間',r.avgReact==null?'—':`${r.avgReact.toFixed(2)} 秒`]];
   if(mode==='phone')rows.push(['スマホを見ていた',`${r.gazeTime.toFixed(1)} 秒 / ${r.gazeDist.toFixed(0)} m`],['返信 / 放置',`${r.replies} / ${r.unanswered} 件`],['警察官に注意された',`${r.policeWarn} 回（${r.policePass} 人中）`]);
   c.font=`400 34px ${FONT}`;rows.forEach(([k,v2],i)=>{c.fillText(k,70,160+i*50);c.textAlign='right';c.fillText(v2,960,160+i*50);c.textAlign='left';});
   c.font=`700 32px ${FONT}`;c.fillStyle='#ffc61a';c.fillText('右A：ながらスマホで走る　右B：ハンドルナビで走る',56,710);vrTex.needsUpdate=true;}
 
 /* ================= results ================= */
+const NOTE_BASE="反応時間は、危険が始まってから最初にブレーキ（飛び出しはハンドル操作も含む）を入れるまでの秒数です。4.5 秒以内に操作がなければ「反応なし」です。ヒヤリハットは、車が自転車の 35 cm 以内を通過した回数です。警察官は歩道に立っていて、その 18 m 以内でスマホを見ていた時間が通算 3 秒に達すると笛を吹いて注意し、約 2.5 秒止められます（1人につき1回の通過で1回まで）。",NOTE_DOG='こむぎを見失っていた時間は、こむぎが同じ通りの 70 m 以内（または 12 m 以内）にいなかった時間です。犬の飛び出しは、こむぎが自転車の前方 30 m 以内で道路を横切った場面です。';
 const f0=x=>x==null?'—':x.toFixed(0),f1=x=>x==null?'—':x.toFixed(1),f2=x=>x==null?'—':x.toFixed(2);
-const isP=r=>r===results.phone;
+const isP=r=>r===results[scen].phone;
 const ROWS=[
-  ['こむぎを捕まえるまでの時間（秒）',r=>r.caught?f1(r.catchTime):'失敗（時間切れ）',null],['走行距離（m）',r=>f0(r.dist),null],
-  ['こむぎを見失っていた時間（秒）',r=>f1(r.lostTime),r=>r.lostTime],['近づきすぎて逃げられた（回）',r=>r.escapes,r=>r.escapes],['目撃情報が届いた（件）',r=>r.sightings,null],
-  ['衝突：歩行者（回）',r=>r.colPed,r=>r.colPed],['衝突：車（回）',r=>r.colCar,r=>r.colCar],['衝突：こむぎ（回）',r=>r.colDog,r=>r.colDog],['縁石・駐車車両に接触（回）',r=>r.colObj,r=>r.colObj],
+  ['到着までの時間（秒）',r=>f1(r.time),null,'route'],['こむぎを捕まえるまでの時間（秒）',r=>r.caught?f1(r.catchTime):'失敗（時間切れ）',null,'dog'],['走行距離（m）',r=>f0(r.dist),null],
+  ['道を間違えた（回）',r=>r.wrong,r=>r.wrong,'route'],
+  ['こむぎを見失っていた時間（秒）',r=>f1(r.lostTime),r=>r.lostTime,'dog'],['近づきすぎて逃げられた（回）',r=>r.escapes,r=>r.escapes,'dog'],['目撃情報が届いた（件）',r=>r.sightings,null,'dog'],
+  ['衝突：歩行者（回）',r=>r.colPed,r=>r.colPed],['衝突：車（回）',r=>r.colCar,r=>r.colCar],['衝突：こむぎ（回）',r=>r.colDog,r=>r.colDog,'dog'],['縁石・駐車車両に接触（回）',r=>r.colObj,r=>r.colObj],
   ['ヒヤリハット：車が至近距離を通過（回）',r=>r.nearMiss,r=>r.nearMiss],['信号無視（回）',r=>r.redRuns,r=>r.redRuns],
   ['危険への平均反応時間（秒）',r=>f2(r.avgReact),r=>r.avgReact],['反応できなかった危険（件）',r=>`${r.missed} / ${r.hazTotal}`,r=>r.hazTotal?r.missed/r.hazTotal:0],
   ['警察官に注意された（回 / 前を通った人数）',r=>isP(r)?`${r.policeWarn} / ${r.policePass}`:`— / ${r.policePass}`,null],
@@ -1050,33 +1186,49 @@ const ROWS=[
   ['前を見ずに進んだ距離（m）',r=>isP(r)?f1(r.gazeDist):'—',null],
   ['最長の1回の注視（秒 / m）',r=>isP(r)?`${f1(r.longest)} / ${f1(r.longestDist)}`:'—',null],
   ['スマホを見た回数（回）',r=>isP(r)?r.glances:'—',null],
+  ['LINEで届いた道案内（件）',r=>isP(r)?r.navMsgs:'—',null,'route'],
   ['返信した数 / 届いた数（件）',r=>isP(r)?`${r.replies} / ${r.received}`:'—',null],
   ['平均返信時間（秒）',r=>isP(r)?(r.replies?f1(r.replyTimeSum/r.replies):'—'):'—',null],
   ['催促された / 放置した（回）',r=>isP(r)?`${r.nudged} / ${r.unanswered}`:'—',null]];
-const COLS=()=>[['ハンドルナビ',results.normal],['ながらスマホ',results.phone]].filter(x=>x[1]);
-function showResults(){const n=results.normal,p=results.phone,cols=COLS();
+const rowsFor=()=>ROWS.filter(r=>!r[3]||r[3]===scen),hTypes=()=>scen==='dog'?HTYPES:HTYPES.filter(t=>t!=='犬の飛び出し');
+const COLS=()=>[['ハンドルナビ',results[scen].normal],['ながらスマホ',results[scen].phone]].filter(x=>x[1]);
+function showResults(){const n=results[scen].normal,p=results[scen].phone,cols=COLS();
   let html='<thead><tr><th>項目</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
-  for(const[label,fmt,cmp]of ROWS){html+=`<tr><td>${label}</td>`;for(const[,r]of cols){const worse=cmp&&n&&p&&r===p&&cmp(p)!=null&&cmp(n)!=null&&cmp(p)>cmp(n);html+=`<td class="num${worse?' worse':''}">${fmt(r)}</td>`;}html+='</tr>';}
+  for(const[label,fmt,cmp]of rowsFor()){html+=`<tr><td>${label}</td>`;for(const[,r]of cols){const worse=cmp&&n&&p&&r===p&&cmp(p)!=null&&cmp(n)!=null&&cmp(p)>cmp(n);html+=`<td class="num${worse?' worse':''}">${fmt(r)}</td>`;}html+='</tr>';}
   $('#resTable').innerHTML=html+'</tbody>';
   let hh='<thead><tr><th>危険</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>';
-  for(const t of HTYPES){hh+=`<tr><td>${t}</td>`;for(const[,r]of cols){const b=r.byType[t];hh+=`<td class="num">${b.n?`平均 ${f2(b.avg)} 秒<br><small>反応 ${b.reacted}/${b.n}・注視中 ${b.gazed}・衝突 ${b.hit}</small>`:'発生なし'}</td>`;}hh+='</tr>';}
+  for(const t of hTypes()){hh+=`<tr><td>${t}</td>`;for(const[,r]of cols){const b=r.byType[t];hh+=`<td class="num">${b.n?`平均 ${f2(b.avg)} 秒<br><small>反応 ${b.reacted}/${b.n}・注視中 ${b.gazed}・衝突 ${b.hit}</small>`:'発生なし'}</td>`;}hh+='</tr>';}
   $('#hazTable').innerHTML=hh+'</tbody>';
+  let ins='';
+  if(scen==='route'){
+  if(p)ins+=`スマホを見ていた合計 <strong>${f1(p.gazeTime)} 秒</strong>（走行時間の ${(p.gazeRatio*100).toFixed(0)}%）のあいだに、前を見ずに <strong>${f1(p.gazeDist)} m</strong> 進みました。最長の1回は ${f1(p.longest)} 秒で ${f1(p.longestDist)} m です。`;
+  if(p&&p.policePass)ins+=` 警察官 ${p.policePass} 人の前を通り、<strong>${p.policeWarn} 回</strong> 注意されました。`;
+  if(n&&p){if(n.avgReact!=null&&p.avgReact!=null){const d=p.avgReact-n.avgReact;ins+=d>0?` 危険への反応は平均 <strong>${d.toFixed(2)} 秒</strong> 遅れ、時速 ${f1(p.avg)} km ではその間に約 <strong>${(d*p.avg/3.6).toFixed(1)} m</strong> 進みます。`:` 平均反応時間の差は ${d.toFixed(2)} 秒でした。反応できなかった危険の数もあわせて見てください。`;}
+    if(p.replies)ins+=` トークは ${p.replies} 件返信しました。`;ins+=` ヒヤリハットは ${n.nearMiss} 回 → ${p.nearMiss} 回、道の間違いは ${n.wrong} 回 → ${p.wrong} 回でした。`;}
+  if(!p)ins='ハンドルナビのデータが取れました。次は「ながらスマホ」で走ると、反応時間や前を見ずに進んだ距離を比較できます。';else if(!n)ins+=' 「ハンドルナビ」でも走ると、反応時間を並べて比較できます。';
+  }else{
   const got=(r,nm)=>r.caught?`${nm}では <strong>${f1(r.catchTime)} 秒</strong>でこむぎを捕まえました。`:`${nm}では時間内にこむぎを捕まえられませんでした。`;
-  let ins='';if(n)ins+=got(n,'ハンドルナビ');if(p)ins+=' '+got(p,'ながらスマホ');
+  if(n)ins+=got(n,'ハンドルナビ');if(p)ins+=' '+got(p,'ながらスマホ');
   if(p)ins+=` スマホを見ていた合計 <strong>${f1(p.gazeTime)} 秒</strong>（走行時間の ${(p.gazeRatio*100).toFixed(0)}%）のあいだに、前を見ずに <strong>${f1(p.gazeDist)} m</strong> 進みました。最長の1回は ${f1(p.longest)} 秒で ${f1(p.longestDist)} m です。`;
   if(p&&p.policePass)ins+=` 警察官 ${p.policePass} 人の前を通り、<strong>${p.policeWarn} 回</strong> 注意されました。`;
   if(n&&p){if(n.avgReact!=null&&p.avgReact!=null){const d=p.avgReact-n.avgReact;ins+=d>0?` 危険への反応は平均 <strong>${d.toFixed(2)} 秒</strong> 遅れ、時速 ${f1(p.avg)} km ではその間に約 <strong>${(d*p.avg/3.6).toFixed(1)} m</strong> 進みます。`:` 平均反応時間の差は ${d.toFixed(2)} 秒でした。反応できなかった危険の数もあわせて見てください。`;}
     if(p.replies)ins+=` トークは ${p.replies} 件返信しました。`;ins+=` ヒヤリハットは ${n.nearMiss} 回 → ${p.nearMiss} 回、こむぎを見失っていた時間は ${f1(n.lostTime)} 秒 → ${f1(p.lostTime)} 秒でした。`;}
   if(!p)ins+=' 次は「ながらスマホ」で走ると、反応時間や前を見ずに進んだ距離を比較できます。';else if(!n)ins+=' 「ハンドルナビ」でも走ると、反応時間を並べて比較できます。';
+  }
+  $('#resNote').innerHTML=NOTE_BASE+(scen==='dog'?NOTE_DOG:'');
   $('#insight').innerHTML=ins;$('#copyArea').hidden=true;$('#copyBtn').textContent='結果をコピー';$('#menu').hidden=true;$('#results').hidden=false;}
-function resultText(){const cols=COLS();let t='項目\t'+cols.map(c=>c[0]).join('\t')+'\n';for(const[l,fmt]of ROWS)t+=l+'\t'+cols.map(c=>String(fmt(c[1]))).join('\t')+'\n';
-  t+='\n危険\t'+cols.map(c=>c[0]+' 平均反応(秒)\t反応/発生\t衝突').join('\t')+'\n';for(const ty of HTYPES)t+=ty+'\t'+cols.map(c=>{const b=c[1].byType[ty];return`${f2(b.avg)}\t${b.reacted}/${b.n}\t${b.hit}`;}).join('\t')+'\n';return t;}
+function resultText(){const cols=COLS();let t='項目\t'+cols.map(c=>c[0]).join('\t')+'\n';for(const[l,fmt]of rowsFor())t+=l+'\t'+cols.map(c=>String(fmt(c[1]))).join('\t')+'\n';
+  t+='\n危険\t'+cols.map(c=>c[0]+' 平均反応(秒)\t反応/発生\t衝突').join('\t')+'\n';for(const ty of hTypes())t+=ty+'\t'+cols.map(c=>{const b=c[1].byType[ty];return`${f2(b.avg)}\t${b.reacted}/${b.n}\t${b.hit}`;}).join('\t')+'\n';return t;}
 $('#copyBtn').addEventListener('click',()=>{const t=resultText(),b=$('#copyBtn');const fb=()=>{const a=$('#copyArea');a.value=t;a.hidden=false;a.focus();a.select();b.textContent='選択してコピーしてください';};
   try{navigator.clipboard.writeText(t).then(()=>b.textContent='コピーしました（表計算に貼り付け可）',fb);}catch(e){fb();}});
 document.querySelectorAll('[data-run]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.run)));
 $('#toMenu').addEventListener('click',toMenu);
 const selMode=()=>$('#modePhone').checked?'phone':'normal';
-$('#startScreen').addEventListener('click',()=>startRun(selMode()));
+const selScen=()=>$('#scenRoute').checked?'route':'dog';
+const SMALL={route:['音声案内＋ハンドルの矢印表示。前を見て走る対照条件','左手のスマホに友達からLINEで道順が届く。雑談にも返信しながら走る。見ている間だけ文字が打てる'],dog:['目撃情報を音声で聞き、ハンドルの矢印（方向と距離）で探す。前を見て走る対照条件','スマホの地図とグループLINEの目撃情報を見比べて探す。質問にも返信しながら走る']};
+function showScen(){const sc=selScen();$('#leadRoute').hidden=sc!=='route';$('#leadDog').hidden=sc!=='dog';$('#smallNormal').textContent=SMALL[sc][0];$('#smallPhone').textContent=SMALL[sc][1];}
+document.querySelectorAll('input[name=scen]').forEach(r=>r.addEventListener('change',showScen));showScen();
+$('#startScreen').addEventListener('click',()=>{scen=selScen();startRun(selMode());});
 
 /* ================= loop ================= */
 // 動作確認用：URLに ?debug を付けると、コンソールから dbg.tp(x,z,yaw) で移動、dbg.police / dbg.stats で状態を見られる
@@ -1085,7 +1237,7 @@ if(location.search.includes('debug'))window.dbg={tp(x,z,y=yaw){bx=x;bz=z;yaw=y;v
 {rr=rng32(5);let pk=0;cars=[];for(let n=0;n<10;n++){const m=carPool[pk++];m.visible=true;const c={mesh:m};cars.push(c);bx=60;bz=-60;spawnCar(c,false);}}
 updateLamps();
 const clock=new THREE.Clock();
-renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);const inp=readInput(dt);
+renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),.05);if(vrAlert.visible&&performance.now()>vrAlertT)vrAlert.visible=false;const inp=readInput(dt);
   if(state==='play')update(dt,inp);else{idle(dt);if(state==='menu'){bx=60;bz=-60;updateCars(dt);}}renderer.render(scene,camera);});
 </script>
 
